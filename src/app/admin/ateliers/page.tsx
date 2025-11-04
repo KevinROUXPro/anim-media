@@ -16,6 +16,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { Plus, Edit, Trash2, ArrowLeft } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function AdminWorkshopsPage() {
   const { user, isAdmin } = useAuth();
@@ -189,8 +190,12 @@ export default function AdminWorkshopsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-[#F7EDE0]">
+        <motion.div 
+          className="h-16 w-16 border-4 border-[#00A8A8] border-t-transparent rounded-full"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+        />
       </div>
     );
   }
@@ -408,7 +413,7 @@ export default function AdminWorkshopsPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2 flex-wrap">
                         <span className="text-xl">{categoryInfo.icon}</span>
-                        <span className="text-sm font-medium text-purple-600 bg-purple-50 px-3 py-1 rounded-full">
+                        <span className="text-sm font-medium text-white bg-[#00A8A8] px-3 py-1 rounded-full">
                           {categoryInfo.label}
                         </span>
                         <span className="text-sm font-medium text-green-600 bg-green-50 px-3 py-1 rounded-full">

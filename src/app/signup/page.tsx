@@ -10,6 +10,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+import { THEME_CLASSES } from '@/config/theme';
+import { scaleInBounce, slideInRight, fadeIn } from '@/lib/animations';
 
 export default function SignupPage() {
   const [name, setName] = useState('');
@@ -54,21 +56,53 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50 p-4">
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-[#F7EDE0]/50 p-4 relative overflow-hidden">
+      {/* Animated background shapes */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
+        animate={{
+          scale: [1, 1.2, 1],
+          rotate: [0, 180, 360],
+        }}
+        transition={{
+          duration: 20,
+          repeat: Infinity,
+          ease: "linear"
+        }}
+        className="absolute top-10 left-10 w-96 h-96 bg-gradient-to-br from-[#F49928]/20 to-[#DE3156]/20 rounded-full blur-3xl"
+      />
+      <motion.div
+        animate={{
+          scale: [1, 1.3, 1],
+          rotate: [360, 180, 0],
+        }}
+        transition={{
+          duration: 25,
+          repeat: Infinity,
+          ease: "linear"
+        }}
+        className="absolute bottom-10 right-10 w-96 h-96 bg-gradient-to-br from-[#00C2CB]/20 to-[#00A8A8]/20 rounded-full blur-3xl"
+      />
+      
+      <motion.div
+        variants={scaleInBounce}
+        initial="hidden"
+        animate="visible"
+        className="w-full max-w-md relative z-10"
       >
-        <Card>
-          <CardHeader className="text-center">
-            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Créer un compte
-            </CardTitle>
-            <CardDescription>
-              Rejoignez Anim'Média et inscrivez-vous à nos activités
-            </CardDescription>
+        <Card className="shadow-2xl border-2">
+          <CardHeader className="text-center pb-8">
+            <motion.div
+              variants={slideInRight}
+              initial="hidden"
+              animate="visible"
+            >
+              <CardTitle className={`text-5xl font-bold mb-4 ${THEME_CLASSES.textGradient}`}>
+                🎊 Créer un compte
+              </CardTitle>
+              <CardDescription className="text-lg">
+                Rejoignez Anim'Média et inscrivez-vous à nos activités
+              </CardDescription>
+            </motion.div>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -123,16 +157,16 @@ export default function SignupPage() {
 
               <Button
                 type="submit"
-                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                className={`w-full ${THEME_CLASSES.buttonPrimary} text-lg py-6`}
                 disabled={loading}
               >
-                {loading ? 'Création...' : 'Créer mon compte'}
+                {loading ? '⏳ Création...' : '🎉 Créer mon compte'}
               </Button>
             </form>
 
-            <div className="mt-6 text-center text-sm text-gray-600">
+            <div className="mt-6 text-center text-base text-gray-600">
               Déjà un compte ?{' '}
-              <Link href="/login" className="text-purple-600 hover:text-purple-700 font-medium">
+              <Link href="/login" className={`${THEME_CLASSES.textPrimary} hover:opacity-80 font-semibold`}>
                 Se connecter
               </Link>
             </div>

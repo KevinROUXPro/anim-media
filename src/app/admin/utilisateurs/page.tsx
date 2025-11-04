@@ -115,9 +115,9 @@ export default function AdminUsersPage() {
                 <p className="text-sm text-blue-600 font-medium">Total Utilisateurs</p>
                 <p className="text-3xl font-bold text-blue-900">{users.length}</p>
               </div>
-              <div className="bg-purple-50 p-4 rounded-lg">
-                <p className="text-sm text-purple-600 font-medium">Administrateurs</p>
-                <p className="text-3xl font-bold text-purple-900">
+              <div className="bg-[#DE3156]/10 p-4 rounded-lg">
+                <p className="text-sm text-[#DE3156] font-medium">Administrateurs</p>
+                <p className="text-3xl font-bold text-[#DE3156]">
                   {users.filter(u => u.role === UserRole.ADMIN).length}
                 </p>
               </div>
@@ -139,7 +139,7 @@ export default function AdminUsersPage() {
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       {u.role === UserRole.ADMIN ? (
-                        <Shield className="h-5 w-5 text-purple-600" />
+                        <Shield className="h-5 w-5 text-[#DE3156]" />
                       ) : (
                         <UserIcon className="h-5 w-5 text-gray-400" />
                       )}
@@ -159,7 +159,7 @@ export default function AdminUsersPage() {
                     <span 
                       className={`px-3 py-1 rounded-full text-sm font-medium ${
                         u.role === UserRole.ADMIN 
-                          ? 'bg-purple-100 text-purple-700' 
+                          ? 'bg-[#DE3156]/10 text-[#DE3156]' 
                           : 'bg-gray-100 text-gray-700'
                       }`}
                     >

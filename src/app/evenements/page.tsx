@@ -11,6 +11,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { THEME_CLASSES } from '@/config/theme';
+import { fadeInUp, staggerContainer, staggerItem, bounceIn } from '@/lib/animations';
 
 export default function EventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
@@ -58,69 +60,125 @@ export default function EventsPage() {
   }, [selectedCategory, events]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#F7EDE0]/30">
       {/* Header */}
-      <section className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className={`${THEME_CLASSES.headerGradient} text-white py-20 relative overflow-hidden`}>
+        {/* Animated background shapes */}
+        <motion.div
+          animate={{
+            scale: [1, 1.2, 1],
+            rotate: [0, 180, 360],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            ease: "linear"
+          }}
+          className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl"
+        />
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            variants={bounceIn}
+            initial="hidden"
+            animate="visible"
             className="text-center"
           >
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Nos Événements
-            </h1>
-            <p className="text-lg opacity-90">
+            <motion.h1 
+              className="text-5xl md:text-6xl font-bold mb-6"
+              animate={{
+                textShadow: [
+                  "0 0 20px rgba(255,255,255,0.5)",
+                  "0 0 30px rgba(255,255,255,0.8)",
+                  "0 0 20px rgba(255,255,255,0.5)"
+                ],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            >
+              🎉 Nos Événements
+            </motion.h1>
+            <motion.p 
+              className="text-xl md:text-2xl opacity-95 font-light"
+              variants={fadeInUp}
+            >
               Découvrez tous nos événements culturels à venir
-            </p>
+            </motion.p>
           </motion.div>
         </div>
       </section>
 
       {/* Filtres */}
-      <section className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant={selectedCategory === 'ALL' ? 'default' : 'outline'}
-              onClick={() => setSelectedCategory('ALL')}
-              className={selectedCategory === 'ALL' ? 'bg-purple-600' : ''}
-            >
-              Tous
-            </Button>
-            {Object.entries(CATEGORY_LABELS).map(([key, value]) => (
+      <section className="bg-white border-b border-[#DE3156]/10 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <motion.div 
+            className="flex flex-wrap gap-3"
+            variants={staggerContainer}
+            initial="hidden"
+            animate="visible"
+          >
+            <motion.div variants={staggerItem}>
               <Button
-                key={key}
-                variant={selectedCategory === key ? 'default' : 'outline'}
-                onClick={() => setSelectedCategory(key as ActivityCategory)}
-                className={selectedCategory === key ? 'bg-purple-600' : ''}
+                variant={selectedCategory === 'ALL' ? 'default' : 'outline'}
+                onClick={() => setSelectedCategory('ALL')}
+                className={selectedCategory === 'ALL' ? THEME_CLASSES.buttonPrimary : 'text-base font-semibold'}
+                size="lg"
               >
-                {value.icon} {value.label}
+                Tous
               </Button>
+            </motion.div>
+            {Object.entries(CATEGORY_LABELS).map(([key, value]) => (
+              <motion.div key={key} variants={staggerItem}>
+                <Button
+                  variant={selectedCategory === key ? 'default' : 'outline'}
+                  onClick={() => setSelectedCategory(key as ActivityCategory)}
+                  className={selectedCategory === key ? THEME_CLASSES.buttonSecondary : 'text-base font-semibold'}
+                  size="lg"
+                >
+                  {value.icon} {value.label}
+                </Button>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* Liste des événements */}
-      <section ref={ref} className="py-12">
+      <section ref={ref} className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {loading ? (
-            <div className="flex justify-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-            </div>
+            <motion.div 
+              className="flex justify-center"
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            >
+              <div className={`rounded-full h-16 w-16 border-4 border-t-transparent ${THEME_CLASSES.borderPrimary}`}></div>
+            </motion.div>
           ) : filteredEvents.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <motion.div 
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+              variants={staggerContainer}
+              initial="hidden"
+              animate={inView ? "visible" : "hidden"}
+            >
               {filteredEvents.map((event, index) => (
                 <EventCard key={event.id} event={event} index={index} inView={inView} />
               ))}
-            </div>
+            </motion.div>
           ) : (
-            <div className="text-center py-12">
-              <p className="text-gray-500 text-lg">
+            <motion.div 
+              className="text-center py-16"
+              variants={fadeInUp}
+              initial="hidden"
+              animate="visible"
+            >
+              <p className="text-gray-600 text-xl font-medium">
                 Aucun événement trouvé dans cette catégorie.
               </p>
-            </div>
+            </motion.div>
           )}
         </div>
       </section>
@@ -132,39 +190,60 @@ function EventCard({ event, index, inView }: { event: Event; index: number; inVi
   const categoryInfo = CATEGORY_LABELS[event.category];
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 50 }}
-      animate={inView ? { opacity: 1, y: 0 } : {}}
-      transition={{ delay: index * 0.05, duration: 0.5 }}
-      whileHover={{ scale: 1.03, y: -5 }}
-    >
+    <motion.div variants={staggerItem}>
       <Link href={`/evenements/${event.id}`}>
-        <Card className="h-full hover:shadow-xl transition-shadow cursor-pointer">
-          {event.imageUrl && (
-            <div className="h-48 bg-gradient-to-br from-purple-100 to-pink-100 rounded-t-lg"></div>
-          )}
-          <CardHeader>
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-2xl">{categoryInfo.icon}</span>
-              <span className="text-sm text-gray-500">{categoryInfo.label}</span>
-            </div>
-            <CardTitle className="text-xl">{event.title}</CardTitle>
-            <CardDescription>
-              {format(event.date, "d MMMM yyyy 'à' HH:mm", { locale: fr })}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-gray-600 mb-3 line-clamp-3">{event.description}</p>
-            <p className="text-sm text-gray-500 flex items-center gap-1">
-              📍 {event.location}
-            </p>
-            {event.requiresRegistration && (
-              <div className="mt-3 inline-block bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm">
-                Inscription requise
-              </div>
+        <motion.div
+          whileHover={{ 
+            scale: 1.05, 
+            y: -10,
+            rotateZ: 2
+          }}
+          whileTap={{ scale: 0.98 }}
+          transition={{ 
+            duration: 0.3,
+            type: "spring" as const,
+            stiffness: 300
+          }}
+        >
+          <Card className={`h-full transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-[#DE3156]/50 ${THEME_CLASSES.cardHover} bg-white/90 backdrop-blur-sm`}>
+            {event.imageUrl && (
+              <div className={`h-48 ${THEME_CLASSES.sectionEvents} rounded-t-lg`}></div>
             )}
-          </CardContent>
-        </Card>
+            <CardHeader>
+              <div className="flex items-center gap-3 mb-3">
+                <motion.span 
+                  className="text-4xl"
+                  animate={{
+                    rotate: [0, 10, -10, 0],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                >
+                  {categoryInfo.icon}
+                </motion.span>
+                <span className="text-sm font-semibold text-gray-600 uppercase tracking-wide">{categoryInfo.label}</span>
+              </div>
+              <CardTitle className="text-2xl font-bold">{event.title}</CardTitle>
+              <CardDescription className="text-base">
+                📅 {format(event.date, "d MMMM yyyy 'à' HH:mm", { locale: fr })}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-700 mb-4 line-clamp-3 text-base">{event.description}</p>
+              <p className="text-sm font-medium text-gray-600 flex items-center gap-2 mb-3">
+                📍 {event.location}
+              </p>
+              {event.requiresRegistration && (
+                <div className={`mt-3 inline-block ${THEME_CLASSES.bgPrimary} bg-opacity-10 ${THEME_CLASSES.textPrimary} px-4 py-2 rounded-full text-sm font-semibold`}>
+                  Inscription requise
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
       </Link>
     </motion.div>
   );

@@ -7,6 +7,7 @@ import { collection, addDoc, deleteDoc, doc, query, where, getDocs, Timestamp } 
 import { db } from '@/lib/firebase';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { THEME_CLASSES } from '@/config/theme';
 
 export function RegisterButton({ 
   activityId, 
@@ -141,7 +142,7 @@ export function RegisterButton({
           onClick={handleRegister} 
           disabled={loading}
           size="lg"
-          className="w-full bg-gradient-to-r from-purple-600 to-pink-600"
+          className={`w-full ${THEME_CLASSES.buttonPrimary}`}
         >
           {loading ? 'Inscription...' : 'S\'inscrire'}
         </Button>

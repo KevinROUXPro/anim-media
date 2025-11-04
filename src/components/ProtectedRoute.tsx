@@ -3,6 +3,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { THEME_CLASSES } from '@/config/theme';
 
 export function ProtectedRoute({ children, requireAdmin = false }: { 
   children: React.ReactNode;
@@ -23,8 +24,8 @@ export function ProtectedRoute({ children, requireAdmin = false }: {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-[#F7EDE0]/30">
+        <div className={`animate-spin rounded-full h-16 w-16 border-4 border-t-transparent ${THEME_CLASSES.borderPrimary}`}></div>
       </div>
     );
   }

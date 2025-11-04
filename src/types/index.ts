@@ -37,6 +37,18 @@ export const LEVEL_LABELS: Record<SkillLevel, string> = {
   [SkillLevel.AVANCE]: 'Avancé',
 };
 
+export enum MembershipStatus {
+  ACTIVE = 'ACTIVE',
+  EXPIRED = 'EXPIRED',
+  NONE = 'NONE',
+}
+
+export const MEMBERSHIP_LABELS: Record<MembershipStatus, { label: string; color: string }> = {
+  [MembershipStatus.ACTIVE]: { label: 'Adhérent actif', color: 'green' },
+  [MembershipStatus.EXPIRED]: { label: 'Adhésion expirée', color: 'orange' },
+  [MembershipStatus.NONE]: { label: 'Non adhérent', color: 'gray' },
+};
+
 // Types de base
 export interface User {
   id: string;
@@ -44,6 +56,11 @@ export interface User {
   name: string;
   role: UserRole;
   createdAt: Date;
+  // Adhésion
+  membershipStatus: MembershipStatus;
+  membershipNumber?: string;
+  membershipExpiry?: Date;
+  membershipStartDate?: Date;
 }
 
 export interface Event {
@@ -91,8 +108,10 @@ export interface Registration {
 }
 
 // Types pour Firestore (avec timestamps Firestore)
-export interface UserDoc extends Omit<User, 'createdAt'> {
+export interface UserDoc extends Omit<User, 'createdAt' | 'membershipExpiry' | 'membershipStartDate'> {
   createdAt: any; // Firestore Timestamp
+  membershipExpiry?: any;
+  membershipStartDate?: any;
 }
 
 export interface EventDoc extends Omit<Event, 'date' | 'createdAt' | 'updatedAt'> {

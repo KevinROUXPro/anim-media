@@ -10,6 +10,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+import { THEME_CLASSES } from '@/config/theme';
+import { fadeIn, scaleInBounce, slideInLeft } from '@/lib/animations';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -41,26 +43,69 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-50 p-4">
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-[#F7EDE0]/50 p-4 relative overflow-hidden">
+      {/* Animated background shapes */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
+        animate={{
+          scale: [1, 1.2, 1],
+          rotate: [0, 180, 360],
+        }}
+        transition={{
+          duration: 20,
+          repeat: Infinity,
+          ease: "linear"
+        }}
+        className="absolute top-10 right-10 w-96 h-96 bg-gradient-to-br from-[#DE3156]/20 to-[#F49928]/20 rounded-full blur-3xl"
+      />
+      <motion.div
+        animate={{
+          scale: [1, 1.3, 1],
+          rotate: [360, 180, 0],
+        }}
+        transition={{
+          duration: 25,
+          repeat: Infinity,
+          ease: "linear"
+        }}
+        className="absolute bottom-10 left-10 w-96 h-96 bg-gradient-to-br from-[#00A8A8]/20 to-[#00C2CB]/20 rounded-full blur-3xl"
+      />
+      
+      <motion.div
+        variants={scaleInBounce}
+        initial="hidden"
+        animate="visible"
+        className="w-full max-w-md relative z-10"
       >
-        <Card>
-          <CardHeader className="text-center">
-            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Connexion
-            </CardTitle>
-            <CardDescription>
-              Connectez-vous pour accéder à votre compte
-            </CardDescription>
+        <Card className="shadow-2xl border-2">
+          <CardHeader className="text-center pb-8">
+            <motion.div
+              variants={slideInLeft}
+              initial="hidden"
+              animate="visible"
+            >
+              <CardTitle className={`text-5xl font-bold mb-4 ${THEME_CLASSES.textGradient}`}>
+                ✨ Connexion
+              </CardTitle>
+              <CardDescription className="text-lg">
+                Connectez-vous pour accéder à votre compte
+              </CardDescription>
+            </motion.div>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+            <motion.form 
+              onSubmit={handleSubmit} 
+              className="space-y-6"
+              variants={fadeIn}
+              initial="hidden"
+              animate="visible"
+            >
+              <motion.div 
+                className="space-y-2"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <Label htmlFor="email" className="text-base font-semibold">Email</Label>
                 <Input
                   id="email"
                   type="email"
@@ -68,11 +113,17 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  className="h-12 text-base"
                 />
-              </div>
+              </motion.div>
 
-              <div className="space-y-2">
-                <Label htmlFor="password">Mot de passe</Label>
+              <motion.div 
+                className="space-y-2"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                <Label htmlFor="password" className="text-base font-semibold">Mot de passe</Label>
                 <Input
                   id="password"
                   type="password"
@@ -80,24 +131,41 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  className="h-12 text-base"
                 />
-              </div>
+              </motion.div>
 
-              <Button
-                type="submit"
-                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                disabled={loading}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
               >
-                {loading ? 'Connexion...' : 'Se connecter'}
-              </Button>
-            </form>
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Button
+                    type="submit"
+                    className={`w-full ${THEME_CLASSES.buttonPrimary} text-lg py-6`}
+                    disabled={loading}
+                  >
+                    {loading ? '⏳ Connexion...' : '🚀 Se connecter'}
+                  </Button>
+                </motion.div>
+              </motion.div>
+            </motion.form>
 
-            <div className="mt-6 text-center text-sm text-gray-600">
+            <motion.div 
+              className="mt-6 text-center text-base text-gray-600"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
+            >
               Pas encore de compte ?{' '}
-              <Link href="/signup" className="text-purple-600 hover:text-purple-700 font-medium">
+              <Link href="/signup" className={`${THEME_CLASSES.textPrimary} hover:opacity-80 font-semibold`}>
                 Créer un compte
               </Link>
-            </div>
+            </motion.div>
           </CardContent>
         </Card>
       </motion.div>

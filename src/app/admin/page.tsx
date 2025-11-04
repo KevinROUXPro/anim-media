@@ -9,6 +9,8 @@ import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { collection, getDocs, query, where, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { THEME_CLASSES } from '@/config/theme';
+import { bounceIn, staggerContainer, staggerItem } from '@/lib/animations';
 
 export default function AdminPage() {
   return (
@@ -78,111 +80,164 @@ function AdminContent() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#F7EDE0]">
       {/* Header */}
-      <section className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-16">
+      <motion.section 
+        className={`${THEME_CLASSES.headerGradient} text-white py-16`}
+        variants={bounceIn}
+        initial="hidden"
+        animate="visible"
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <h1 className="text-4xl font-bold mb-2">Tableau de Bord Admin</h1>
-            <p className="text-lg opacity-90">Bienvenue, {user?.name}</p>
+            <motion.h1 
+              className="text-5xl font-bold mb-2"
+              animate={{ scale: [1, 1.02, 1] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            >
+              Tableau de Bord Admin 🎯
+            </motion.h1>
+            <p className="text-xl opacity-90">Bienvenue, {user?.name}</p>
           </motion.div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Stats */}
       <section className="py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {loading ? (
             <div className="flex justify-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+              <motion.div 
+                className={`h-16 w-16 border-4 ${THEME_CLASSES.borderPrimary} border-t-transparent rounded-full`}
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              />
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-              <StatCard
-                title="Utilisateurs"
-                value={stats.totalUsers}
-                icon="👥"
-                color="bg-blue-500"
-              />
-              <StatCard
-                title="Événements à venir"
-                value={stats.upcomingEvents}
-                subtitle={`sur ${stats.totalEvents} total`}
-                icon="🎉"
-                color="bg-purple-500"
-              />
-              <StatCard
-                title="Ateliers à venir"
-                value={stats.upcomingWorkshops}
-                subtitle={`sur ${stats.totalWorkshops} total`}
-                icon="🎨"
-                color="bg-pink-500"
-              />
-              <StatCard
-                title="Inscriptions totales"
-                value={stats.totalRegistrations}
-                icon="📝"
-                color="bg-green-500"
-              />
-            </div>
+            <motion.div
+              variants={staggerContainer}
+              initial="hidden"
+              animate="visible"
+            >
+              <motion.div 
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12"
+                variants={staggerItem}
+              >
+                <StatCard
+                  title="Utilisateurs"
+                  value={stats.totalUsers}
+                  icon="👥"
+                  color="bg-blue-500"
+                />
+                <StatCard
+                  title="Événements à venir"
+                  value={stats.upcomingEvents}
+                  subtitle={`sur ${stats.totalEvents} total`}
+                  icon="🎉"
+                  color={THEME_CLASSES.sectionEvents}
+                />
+                <StatCard
+                  title="Ateliers à venir"
+                  value={stats.upcomingWorkshops}
+                  subtitle={`sur ${stats.totalWorkshops} total`}
+                  icon="🎨"
+                  color={THEME_CLASSES.sectionWorkshops}
+                />
+                <StatCard
+                  title="Inscriptions totales"
+                  value={stats.totalRegistrations}
+                  icon="📝"
+                  color="bg-green-500"
+                />
+              </motion.div>
+
+              {/* Actions rapides */}
+              <motion.div variants={staggerItem}>
+                <h2 className={`text-3xl font-bold mb-6 ${THEME_CLASSES.textPrimary}`}>Gestion 🔧</h2>
+                <motion.div 
+                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+                  variants={staggerContainer}
+                  initial="hidden"
+                  animate="visible"
+                >
+                  <motion.div variants={staggerItem}>
+                    <Link href="/admin/evenements">
+                      <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full border-2 border-transparent hover:border-[#DE3156]">
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2 text-xl">
+                            🎉 Gérer les Événements
+                          </CardTitle>
+                          <CardDescription className="text-base">
+                            Créer, modifier et supprimer des événements
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <Button className="w-full" size="lg">Accéder</Button>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  </motion.div>
+
+                  <motion.div variants={staggerItem}>
+                    <Link href="/admin/ateliers">
+                      <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full border-2 border-transparent hover:border-[#00A8A8]">
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2 text-xl">
+                            🎨 Gérer les Ateliers
+                          </CardTitle>
+                          <CardDescription className="text-base">
+                            Créer, modifier et supprimer des ateliers
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <Button className="w-full" size="lg">Accéder</Button>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  </motion.div>
+
+                  <motion.div variants={staggerItem}>
+                    <Link href="/admin/utilisateurs">
+                      <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full border-2 border-transparent hover:border-blue-500">
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2 text-xl">
+                            👥 Gérer les Utilisateurs
+                          </CardTitle>
+                          <CardDescription className="text-base">
+                            Promouvoir des admins et gérer les comptes
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <Button className="w-full" size="lg">Accéder</Button>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  </motion.div>
+
+                  <motion.div variants={staggerItem}>
+                    <Link href="/admin/adherents">
+                      <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full border-2 border-transparent hover:border-green-500">
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2 text-xl">
+                            🎫 Gérer les Adhérents
+                          </CardTitle>
+                          <CardDescription className="text-base">
+                            Activer, renouveler et gérer les adhésions
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <Button className="w-full" size="lg">Accéder</Button>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  </motion.div>
+                </motion.div>
+              </motion.div>
+            </motion.div>
           )}
-
-          {/* Actions rapides */}
-          <div>
-            <h2 className="text-2xl font-bold mb-6">Gestion</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <Link href="/admin/evenements">
-                <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      🎉 Gérer les Événements
-                    </CardTitle>
-                    <CardDescription>
-                      Créer, modifier et supprimer des événements
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Button className="w-full">Accéder</Button>
-                  </CardContent>
-                </Card>
-              </Link>
-
-              <Link href="/admin/ateliers">
-                <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      🎨 Gérer les Ateliers
-                    </CardTitle>
-                    <CardDescription>
-                      Créer, modifier et supprimer des ateliers
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Button className="w-full">Accéder</Button>
-                  </CardContent>
-                </Card>
-              </Link>
-
-              <Link href="/admin/utilisateurs">
-                <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      👥 Gérer les Utilisateurs
-                    </CardTitle>
-                    <CardDescription>
-                      Promouvoir des admins et gérer les comptes
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Button className="w-full">Accéder</Button>
-                  </CardContent>
-                </Card>
-              </Link>
-            </div>
-          </div>
         </div>
       </section>
     </div>

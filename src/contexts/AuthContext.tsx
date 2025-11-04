@@ -11,7 +11,7 @@ import {
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
-import { User, UserRole } from '@/types';
+import { User, UserRole, MembershipStatus } from '@/types';
 
 interface AuthContextType {
   user: User | null;
@@ -20,6 +20,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, name: string) => Promise<void>;
   signOut: () => Promise<void>;
+  refreshUser: () => Promise<void>;
   isAdmin: boolean;
 }
 
@@ -45,6 +46,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             name: userData.name || firebaseUser.displayName || '',
             role: userData.role || UserRole.USER,
             createdAt: userData.createdAt?.toDate() || new Date(),
+            membershipStatus: userData.membershipStatus || MembershipStatus.NONE,
+            membershipNumber: userData.membershipNumber,
+            membershipExpiry: userData.membershipExpiry?.toDate(),
+            membershipStartDate: userData.membershipStartDate?.toDate(),
           });
         }
       } else {
@@ -79,6 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       name,
       role: isFirstUser ? UserRole.ADMIN : UserRole.USER,
       createdAt: Timestamp.now(),
+      membershipStatus: MembershipStatus.NONE,
     });
 
     // Mettre à jour les stats
@@ -91,10 +97,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await firebaseSignOut(auth);
   };
 
+  const refreshUser = async () => {
+    if (!firebaseUser) return;
+    
+    const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+    if (userDoc.exists()) {
+      const userData = userDoc.data();
+      setUser({
+        id: firebaseUser.uid,
+        email: firebaseUser.email!,
+        name: userData.name || firebaseUser.displayName || '',
+        role: userData.role || UserRole.USER,
+        createdAt: userData.createdAt?.toDate() || new Date(),
+        membershipStatus: userData.membershipStatus || MembershipStatus.NONE,
+        membershipNumber: userData.membershipNumber,
+        membershipExpiry: userData.membershipExpiry?.toDate(),
+        membershipStartDate: userData.membershipStartDate?.toDate(),
+      });
+    }
+  };
+
   const isAdmin = user?.role === UserRole.ADMIN;
 
   return (
-    <AuthContext.Provider value={{ user, firebaseUser, loading, signIn, signUp, signOut, isAdmin }}>
+    <AuthContext.Provider value={{ user, firebaseUser, loading, signIn, signUp, signOut, refreshUser, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );

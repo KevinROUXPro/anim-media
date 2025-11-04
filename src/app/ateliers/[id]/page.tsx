@@ -12,6 +12,8 @@ import { Calendar, Clock, MapPin, Users, ArrowLeft, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { RegisterButton } from '@/components/RegisterButton';
+import { THEME_CLASSES } from '@/config/theme';
+import { fadeInUp, bounceIn } from '@/lib/animations';
 
 export default function WorkshopDetailPage() {
   const params = useParams();
@@ -45,8 +47,12 @@ export default function WorkshopDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-[#F7EDE0]">
+        <motion.div 
+          className={`h-16 w-16 border-4 ${THEME_CLASSES.borderSecondary} border-t-transparent rounded-full`}
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+        />
       </div>
     );
   }
@@ -67,23 +73,24 @@ export default function WorkshopDetailPage() {
   const isPast = workshop.endDate < new Date();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 py-12">
+    <div className="min-h-screen bg-[#F7EDE0] py-12">
       <div className="max-w-4xl mx-auto px-4">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          variants={fadeInUp}
+          initial="hidden"
+          animate="visible"
         >
           <Button
             variant="ghost"
             onClick={() => router.push('/ateliers')}
             className="mb-6"
+            size="lg"
           >
-            <ArrowLeft className="mr-2 h-4 w-4" />
+            <ArrowLeft className="mr-2 h-5 w-5" />
             Retour aux ateliers
           </Button>
 
-          <Card className="overflow-hidden">
+          <Card className="overflow-hidden border-2">
             {workshop.imageUrl && (
               <div className="w-full h-64 md:h-96 relative">
                 <img
@@ -100,7 +107,7 @@ export default function WorkshopDetailPage() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-3 flex-wrap">
                     <span className="text-2xl">{category.icon}</span>
-                    <span className="text-sm font-medium text-purple-600 bg-purple-50 px-3 py-1 rounded-full">
+                    <span className={`text-sm font-medium text-white px-3 py-1 rounded-full ${THEME_CLASSES.bgSecondary}`}>
                       {category.label}
                     </span>
                     <span className="text-sm font-medium text-green-600 bg-green-50 px-3 py-1 rounded-full">
@@ -112,7 +119,7 @@ export default function WorkshopDetailPage() {
                       </span>
                     )}
                   </div>
-                  <h1 className="text-4xl font-bold text-gray-900 mb-2">
+                  <h1 className={`text-4xl font-bold mb-2 ${THEME_CLASSES.textPrimary}`}>
                     {workshop.title}
                   </h1>
                 </div>
@@ -121,7 +128,7 @@ export default function WorkshopDetailPage() {
               {/* Informations clés */}
               <div className="grid md:grid-cols-2 gap-4 mb-8">
                 <div className="flex items-center gap-3 text-gray-700">
-                  <Calendar className="h-5 w-5 text-purple-600" />
+                  <Calendar className={`h-5 w-5 ${THEME_CLASSES.textSecondary}`} />
                   <div>
                     <div className="text-sm text-gray-500">Début</div>
                     <div className="font-semibold">
@@ -131,7 +138,7 @@ export default function WorkshopDetailPage() {
                 </div>
 
                 <div className="flex items-center gap-3 text-gray-700">
-                  <Calendar className="h-5 w-5 text-purple-600" />
+                  <Calendar className={`h-5 w-5 ${THEME_CLASSES.textSecondary}`} />
                   <div>
                     <div className="text-sm text-gray-500">Fin</div>
                     <div className="font-semibold">
@@ -141,7 +148,7 @@ export default function WorkshopDetailPage() {
                 </div>
 
                 <div className="flex items-center gap-3 text-gray-700">
-                  <Clock className="h-5 w-5 text-purple-600" />
+                  <Clock className={`h-5 w-5 ${THEME_CLASSES.textSecondary}`} />
                   <div>
                     <div className="text-sm text-gray-500">Horaire</div>
                     <div className="font-semibold">{workshop.schedule}</div>
@@ -149,7 +156,7 @@ export default function WorkshopDetailPage() {
                 </div>
 
                 <div className="flex items-center gap-3 text-gray-700">
-                  <MapPin className="h-5 w-5 text-purple-600" />
+                  <MapPin className={`h-5 w-5 ${THEME_CLASSES.textSecondary}`} />
                   <div>
                     <div className="text-sm text-gray-500">Lieu</div>
                     <div className="font-semibold">{workshop.location}</div>
@@ -157,7 +164,7 @@ export default function WorkshopDetailPage() {
                 </div>
 
                 <div className="flex items-center gap-3 text-gray-700">
-                  <Users className="h-5 w-5 text-purple-600" />
+                  <Users className={`h-5 w-5 ${THEME_CLASSES.textSecondary}`} />
                   <div>
                     <div className="text-sm text-gray-500">Participants</div>
                     <div className="font-semibold">
@@ -167,7 +174,7 @@ export default function WorkshopDetailPage() {
                 </div>
 
                 <div className="flex items-center gap-3 text-gray-700">
-                  <Award className="h-5 w-5 text-purple-600" />
+                  <Award className={`h-5 w-5 ${THEME_CLASSES.textSecondary}`} />
                   <div>
                     <div className="text-sm text-gray-500">Niveau</div>
                     <div className="font-semibold">
@@ -179,7 +186,7 @@ export default function WorkshopDetailPage() {
 
               {/* Description */}
               <div className="mb-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                <h2 className={`text-2xl font-bold mb-4 ${THEME_CLASSES.textPrimary}`}>
                   Description
                 </h2>
                 <p className="text-gray-700 whitespace-pre-line leading-relaxed">
@@ -190,7 +197,7 @@ export default function WorkshopDetailPage() {
               {/* Matériel requis */}
               {workshop.requiredMaterials && workshop.requiredMaterials.length > 0 && (
                 <div className="mb-8">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                  <h2 className={`text-2xl font-bold mb-4 ${THEME_CLASSES.textPrimary}`}>
                     Matériel requis
                   </h2>
                   <ul className="list-disc list-inside space-y-2 text-gray-700">
@@ -203,12 +210,17 @@ export default function WorkshopDetailPage() {
 
               {/* Bouton d'inscription */}
               {!isPast && (
-                <div className="flex justify-center pt-6 border-t">
+                <motion.div 
+                  className="flex justify-center pt-6 border-t"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                >
                   <RegisterButton
                     activityId={workshop.id}
                     activityType="workshop"
                   />
-                </div>
+                </motion.div>
               )}
             </div>
           </Card>
