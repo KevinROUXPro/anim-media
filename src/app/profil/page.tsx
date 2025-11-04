@@ -34,8 +34,7 @@ function ProfilContent() {
         // Récupérer les inscriptions
         const regsQuery = query(
           collection(db, 'registrations'),
-          where('userId', '==', user.id),
-          orderBy('createdAt', 'desc')
+          where('userId', '==', user.id)
         );
         const regsSnapshot = await getDocs(regsQuery);
         
@@ -68,7 +67,16 @@ function ProfilContent() {
           })
         );
 
-        setRegistrations(regsWithDetails.filter(r => r.activity));
+        // Trier côté client par date de création (du plus récent au plus ancien)
+        const sortedRegs = regsWithDetails
+          .filter(r => r.activity)
+          .sort((a: any, b: any) => {
+            const dateA = a.createdAt?.toDate?.() || new Date(0);
+            const dateB = b.createdAt?.toDate?.() || new Date(0);
+            return dateB.getTime() - dateA.getTime();
+          });
+
+        setRegistrations(sortedRegs);
       } catch (error) {
         console.error('Error fetching registrations:', error);
       } finally {
