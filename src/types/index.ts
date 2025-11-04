@@ -56,6 +56,7 @@ export interface Event {
   category: ActivityCategory;
   requiresRegistration: boolean;
   maxParticipants?: number;
+  currentParticipants: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -65,6 +66,9 @@ export interface Workshop {
   title: string;
   description: string;
   date: Date;
+  startDate: Date;
+  endDate: Date;
+  schedule: string;
   instructor: string;
   level: SkillLevel;
   category: ActivityCategory;
@@ -72,6 +76,8 @@ export interface Workshop {
   location: string;
   requiresRegistration: boolean;
   maxParticipants?: number;
+  currentParticipants: number;
+  requiredMaterials?: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -95,8 +101,10 @@ export interface EventDoc extends Omit<Event, 'date' | 'createdAt' | 'updatedAt'
   updatedAt: any;
 }
 
-export interface WorkshopDoc extends Omit<Workshop, 'date' | 'createdAt' | 'updatedAt'> {
+export interface WorkshopDoc extends Omit<Workshop, 'date' | 'startDate' | 'endDate' | 'createdAt' | 'updatedAt'> {
   date: any;
+  startDate: any;
+  endDate: any;
   createdAt: any;
   updatedAt: any;
 }
