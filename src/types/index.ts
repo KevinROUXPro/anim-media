@@ -46,8 +46,15 @@ export enum MembershipStatus {
 export const MEMBERSHIP_LABELS: Record<MembershipStatus, { label: string; color: string }> = {
   [MembershipStatus.ACTIVE]: { label: 'Adhérent actif', color: 'green' },
   [MembershipStatus.EXPIRED]: { label: 'Adhésion expirée', color: 'orange' },
-  [MembershipStatus.NONE]: { label: 'Non adhérent', color: 'gray' },
+    [MembershipStatus.NONE]: { label: 'Non adhérent', color: 'gray' },
 };
+
+// Type pour les périodes d'annulation
+export interface CancellationPeriod {
+  startDate: Date;
+  endDate: Date;
+  reason: string;
+}
 
 // Types de base
 export interface User {
@@ -82,10 +89,22 @@ export interface Workshop {
   id: string;
   title: string;
   description: string;
-  date: Date;
-  startDate: Date;
-  endDate: Date;
-  schedule: string;
+  
+  // Récurrence
+  isRecurring: boolean;              // true pour les ateliers récurrents
+  recurrenceDays: number[];          // Jours de la semaine : 0=Dimanche, 1=Lundi, 2=Mardi, etc.
+  recurrenceInterval: number;        // 1 = chaque semaine, 2 = toutes les 2 semaines, etc.
+  startTime: string;                 // Heure de début : "16:00"
+  endTime: string;                   // Heure de fin : "18:00"
+  
+  // Période active (optionnel - pour saisons/cycles)
+  seasonStartDate?: Date;            // Début de la saison (ex: septembre)
+  seasonEndDate?: Date;              // Fin de la saison (ex: juin)
+  
+  // Périodes d'annulation (ex: vacances de l'animateur)
+  cancellationPeriods?: CancellationPeriod[];  // Liste des périodes où l'atelier est annulé
+  
+  // Informations de l'atelier
   instructor: string;
   level: SkillLevel;
   category: ActivityCategory;
@@ -97,6 +116,14 @@ export interface Workshop {
   requiredMaterials?: string[];
   createdAt: Date;
   updatedAt: Date;
+  
+  // Champs obsolètes (à garder temporairement pour compatibilité)
+  date?: Date;
+  startDate?: Date;
+  endDate?: Date;
+  schedule?: string;
+  firstSessionDate?: Date;
+  lastSessionDate?: Date;
 }
 
 export interface Registration {
@@ -120,12 +147,22 @@ export interface EventDoc extends Omit<Event, 'date' | 'createdAt' | 'updatedAt'
   updatedAt: any;
 }
 
-export interface WorkshopDoc extends Omit<Workshop, 'date' | 'startDate' | 'endDate' | 'createdAt' | 'updatedAt'> {
-  date: any;
-  startDate: any;
-  endDate: any;
+export interface WorkshopDoc extends Omit<Workshop, 'seasonStartDate' | 'seasonEndDate' | 'cancellationPeriods' | 'createdAt' | 'updatedAt' | 'date' | 'startDate' | 'endDate' | 'firstSessionDate' | 'lastSessionDate'> {
+  seasonStartDate?: any;
+  seasonEndDate?: any;
+  cancellationPeriods?: Array<{
+    startDate: any;
+    endDate: any;
+    reason: string;
+  }>;
   createdAt: any;
   updatedAt: any;
+  // Champs obsolètes optionnels
+  date?: any;
+  startDate?: any;
+  endDate?: any;
+  firstSessionDate?: any;
+  lastSessionDate?: any;
 }
 
 export interface RegistrationDoc extends Omit<Registration, 'createdAt'> {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { collection, query, orderBy, getDocs, Timestamp, where } from 'firebase/firestore';
+import { collection, query, orderBy, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Workshop, ActivityCategory, CATEGORY_LABELS, LEVEL_LABELS } from '@/types';
 import { motion } from 'framer-motion';
@@ -13,6 +13,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { THEME_CLASSES } from '@/config/theme';
 import { fadeInUp, staggerContainer, staggerItem, bounceIn } from '@/lib/animations';
+import { formatWorkshopSchedule, getNextSession } from '@/lib/workshop-utils';
 
 export default function WorkshopsPage() {
   const [workshops, setWorkshops] = useState<Workshop[]>([]);
@@ -24,23 +25,38 @@ export default function WorkshopsPage() {
   useEffect(() => {
     async function fetchWorkshops() {
       try {
-        const now = Timestamp.now();
         const workshopsQuery = query(
           collection(db, 'workshops'),
-          where('date', '>=', now),
-          orderBy('date', 'asc')
+          orderBy('createdAt', 'desc')
         );
         const snapshot = await getDocs(workshopsQuery);
-        const workshopsData = snapshot.docs.map(doc => ({
-          ...doc.data(),
-          id: doc.id,
-          date: doc.data().date.toDate(),
-          createdAt: doc.data().createdAt.toDate(),
-          updatedAt: doc.data().updatedAt.toDate(),
-        })) as Workshop[];
+        const workshopsData = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            ...data,
+            id: doc.id,
+            seasonStartDate: data.seasonStartDate?.toDate(),
+            seasonEndDate: data.seasonEndDate?.toDate(),
+            cancellationPeriods: data.cancellationPeriods?.map((p: any) => ({
+              startDate: p.startDate.toDate(),
+              endDate: p.endDate.toDate(),
+              reason: p.reason
+            })),
+            createdAt: data.createdAt.toDate(),
+            updatedAt: data.updatedAt.toDate(),
+            // Anciens champs pour rétrocompatibilité
+            date: data.date?.toDate(),
+          };
+        }) as Workshop[];
         
-        setWorkshops(workshopsData);
-        setFilteredWorkshops(workshopsData);
+        // Filtrer les ateliers dont la saison est terminée
+        const activeWorkshops = workshopsData.filter(w => {
+          if (w.seasonEndDate && w.seasonEndDate < new Date()) return false;
+          return true;
+        });
+        
+        setWorkshops(activeWorkshops);
+        setFilteredWorkshops(activeWorkshops);
       } catch (error) {
         console.error('Error fetching workshops:', error);
       } finally {
@@ -188,6 +204,18 @@ export default function WorkshopsPage() {
 
 function WorkshopCard({ workshop, index, inView }: { workshop: Workshop; index: number; inView: boolean }) {
   const categoryInfo = CATEGORY_LABELS[workshop.category];
+  
+  // Pour les ateliers récurrents, calculer la prochaine séance
+  const nextSession = workshop.isRecurring 
+    ? getNextSession(
+        workshop.recurrenceDays, 
+        workshop.recurrenceInterval || 1,
+        workshop.seasonStartDate,
+        workshop.seasonEndDate,
+        workshop.startTime,
+        workshop.cancellationPeriods
+      )
+    : null;
 
   return (
     <motion.div variants={staggerItem}>
@@ -228,7 +256,27 @@ function WorkshopCard({ workshop, index, inView }: { workshop: Workshop; index: 
               </div>
               <CardTitle className="text-2xl font-bold">{workshop.title}</CardTitle>
               <CardDescription className="text-base">
-                📅 {format(workshop.date, "d MMMM yyyy 'à' HH:mm", { locale: fr })}
+                {workshop.isRecurring ? (
+                  <>
+                    <div className="mb-1">
+                      🕐 {formatWorkshopSchedule(
+                        workshop.recurrenceDays, 
+                        workshop.startTime, 
+                        workshop.endTime,
+                        workshop.recurrenceInterval
+                      )}
+                    </div>
+                    {nextSession && (
+                      <div className="text-[#00A8A8] font-semibold">
+                        📅 Prochaine séance : {format(nextSession, "d MMMM yyyy 'à' HH:mm", { locale: fr })}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  workshop.date && (
+                    <>📅 {format(workshop.date, "d MMMM yyyy 'à' HH:mm", { locale: fr })}</>
+                  )
+                )}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -244,6 +292,11 @@ function WorkshopCard({ workshop, index, inView }: { workshop: Workshop; index: 
                   <span className={`inline-block ${THEME_CLASSES.bgSecondary} bg-opacity-10 ${THEME_CLASSES.textSecondary} px-3 py-2 rounded-full text-sm font-semibold`}>
                     {LEVEL_LABELS[workshop.level]}
                   </span>
+                  {workshop.isRecurring && (
+                    <span className={`inline-block bg-blue-100 text-blue-700 px-3 py-2 rounded-full text-sm font-semibold`}>
+                      ♻️ Récurrent
+                    </span>
+                  )}
                   {workshop.requiresRegistration && (
                     <span className={`inline-block ${THEME_CLASSES.bgPrimary} bg-opacity-10 ${THEME_CLASSES.textPrimary} px-3 py-2 rounded-full text-sm font-semibold`}>
                       Inscription requise
