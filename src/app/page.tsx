@@ -8,10 +8,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useEffect, useState } from 'react';
 import { collection, query, where, orderBy, limit, getDocs, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { Event, Workshop, CATEGORY_LABELS, ActivityCategory, MembershipStatus } from '@/types';
+import { Event, Workshop, CATEGORY_LABELS, ActivityCategory, MembershipStatus, CancellationPeriod } from '@/types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { THEME_CLASSES } from '@/config/theme';
+import { getNextSession } from '@/lib/workshop-utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
   fadeInUp, 
@@ -55,24 +56,58 @@ export default function Home() {
           updatedAt: doc.data().updatedAt.toDate(),
         })) as Event[];
 
-        // Récupérer les 3 prochains ateliers
+        // Récupérer tous les ateliers actifs
         const workshopsQuery = query(
           collection(db, 'workshops'),
-          where('date', '>=', now),
-          orderBy('date', 'asc'),
-          limit(3)
+          orderBy('createdAt', 'desc')
         );
         const workshopsSnapshot = await getDocs(workshopsQuery);
-        const workshops = workshopsSnapshot.docs.map(doc => ({
-          ...doc.data(),
-          id: doc.id,
-          date: doc.data().date.toDate(),
-          createdAt: doc.data().createdAt.toDate(),
-          updatedAt: doc.data().updatedAt.toDate(),
-        })) as Workshop[];
+        const allWorkshops = workshopsSnapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            ...data,
+            id: doc.id,
+            createdAt: data.createdAt.toDate(),
+            updatedAt: data.updatedAt.toDate(),
+            startDate: data.startDate?.toDate(),
+            endDate: data.endDate?.toDate(),
+            seasonStartDate: data.seasonStartDate?.toDate(),
+            seasonEndDate: data.seasonEndDate?.toDate(),
+            cancellationPeriods: data.cancellationPeriods?.map((period: any) => ({
+              startDate: period.startDate.toDate(),
+              endDate: period.endDate.toDate(),
+              reason: period.reason
+            }))
+          } as Workshop;
+        });
+
+        // Filtrer et trier les ateliers par prochaine séance
+        const workshopsWithNextSession = allWorkshops
+          .map(workshop => {
+            const nextSession = workshop.isRecurring
+              ? getNextSession(
+                  workshop.recurrenceDays || [],
+                  workshop.recurrenceInterval || 1,
+                  workshop.seasonStartDate,
+                  workshop.seasonEndDate,
+                  workshop.startTime || '14:00',
+                  workshop.cancellationPeriods
+                )
+              : workshop.startDate && workshop.startDate > new Date()
+                ? workshop.startDate
+                : null;
+            return { workshop, nextSession };
+          })
+          .filter(item => item.nextSession !== null)
+          .sort((a, b) => {
+            if (!a.nextSession || !b.nextSession) return 0;
+            return a.nextSession.getTime() - b.nextSession.getTime();
+          })
+          .slice(0, 3)
+          .map(item => item.workshop);
 
         setUpcomingEvents(events);
-        setUpcomingWorkshops(workshops);
+        setUpcomingWorkshops(workshopsWithNextSession);
       } catch (error) {
         console.error('Erreur lors de la récupération des activités:', error);
       } finally {
@@ -319,14 +354,9 @@ export default function Home() {
                     variants={staggerContainer}
                   >
                     {upcomingWorkshops.map((workshop, index) => (
-                      <ActivityCard
+                      <WorkshopCard
                         key={workshop.id}
-                        title={workshop.title}
-                        description={workshop.description}
-                        date={workshop.date}
-                        category={workshop.category}
-                        location={workshop.location}
-                        href={`/ateliers/${workshop.id}`}
+                        workshop={workshop}
                         delay={index * 0.1}
                         inView={inView}
                       />
@@ -491,6 +521,95 @@ function ActivityCard({ title, description, date, category, location, href, dela
               <p className="text-gray-700 mb-3 sm:mb-4 line-clamp-2 text-sm sm:text-base">{description}</p>
               <p className="text-xs sm:text-sm font-medium text-gray-600 flex items-center gap-2">
                 📍 {location}
+              </p>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </Link>
+    </motion.div>
+  );
+}
+
+function WorkshopCard({ workshop, delay, inView }: {
+  workshop: Workshop;
+  delay: number;
+  inView: boolean;
+}) {
+  const categoryInfo = CATEGORY_LABELS[workshop.category];
+
+  // Calculer la prochaine séance
+  const nextSession = workshop.isRecurring
+    ? getNextSession(
+        workshop.recurrenceDays || [],
+        workshop.recurrenceInterval || 1,
+        workshop.seasonStartDate,
+        workshop.seasonEndDate,
+        workshop.startTime || '14:00',
+        workshop.cancellationPeriods
+      )
+    : workshop.startDate && workshop.startDate > new Date()
+      ? workshop.startDate
+      : null;
+
+  // Formater l'horaire
+  const scheduleText = workshop.isRecurring && workshop.recurrenceDays
+    ? `📅 ${workshop.recurrenceDays
+        .map(day => ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'][day])
+        .join(', ')} ${workshop.startTime || '14:00'}-${workshop.endTime || '16:00'}`
+    : nextSession
+      ? `📅 ${format(nextSession, "d MMMM yyyy 'à' HH:mm", { locale: fr })}`
+      : '📅 Dates à venir';
+
+  return (
+    <motion.div
+      variants={staggerItem}
+    >
+      <Link href={`/ateliers/${workshop.id}`}>
+        <motion.div
+          whileHover={{ 
+            scale: 1.05, 
+            y: -10,
+            rotateZ: 2
+          }}
+          whileTap={{ scale: 0.98 }}
+          transition={{ 
+            duration: 0.3,
+            type: "spring" as const,
+            stiffness: 300
+          }}
+        >
+          <Card className={`h-full transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-[#DE3156]/50 ${THEME_CLASSES.cardHover} bg-white/90 backdrop-blur-sm`}>
+            <CardHeader>
+              <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                <motion.span 
+                  className="text-3xl sm:text-4xl"
+                  animate={{
+                    rotate: [0, 10, -10, 0],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                >
+                  {categoryInfo.icon}
+                </motion.span>
+                <span className="text-xs sm:text-sm font-semibold text-gray-600 uppercase tracking-wide">{categoryInfo.label}</span>
+              </div>
+              <CardTitle className="text-xl sm:text-2xl font-bold">{workshop.title}</CardTitle>
+              <CardDescription className="text-sm sm:text-base">
+                {scheduleText}
+              </CardDescription>
+              {nextSession && (
+                <CardDescription className="text-xs sm:text-sm text-green-600 font-medium">
+                  ▶️ Prochain: {format(nextSession, "d MMM 'à' HH:mm", { locale: fr })}
+                </CardDescription>
+              )}
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-700 mb-3 sm:mb-4 line-clamp-2 text-sm sm:text-base">{workshop.description}</p>
+              <p className="text-xs sm:text-sm font-medium text-gray-600 flex items-center gap-2">
+                📍 {workshop.location}
               </p>
             </CardContent>
           </Card>
