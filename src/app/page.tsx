@@ -245,6 +245,109 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Section À propos */}
+      <section className="py-12 sm:py-16 md:py-20 bg-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-12"
+          >
+            <h2 className={`text-3xl sm:text-4xl md:text-5xl font-bold mb-6 ${THEME_CLASSES.textGradient}`}>
+              À propos d'Anim'Média
+            </h2>
+            <div className="h-1 w-24 bg-gradient-to-r from-[#DE3156] to-[#F49928] mx-auto rounded-full mb-8"></div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="grid md:grid-cols-2 gap-8 items-center mb-12"
+          >
+            <div className="space-y-6 text-lg text-gray-700">
+              <p className="leading-relaxed">
+                <strong className={THEME_CLASSES.textPrimary}>Anim'Média</strong> est une association dynamique dédiée à la promotion des activités culturelles et créatives pour tous les âges.
+              </p>
+              <p className="leading-relaxed">
+                Notre mission est de créer un espace de partage, d'apprentissage et de convivialité à travers des ateliers réguliers et des événements ponctuels variés.
+              </p>
+              <p className="leading-relaxed">
+                Du <strong>tricot</strong> à l'<strong>informatique</strong>, de la <strong>lecture</strong> à la <strong>généalogie</strong>, nous proposons des activités pour tous les goûts et tous les niveaux !
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <motion.div
+                whileHover={{ scale: 1.05, y: -5 }}
+                className="bg-gradient-to-br from-[#DE3156]/10 to-[#DE3156]/5 p-6 rounded-2xl border-2 border-[#DE3156]/20"
+              >
+                <div className="text-4xl mb-3">🎨</div>
+                <div className="text-2xl font-bold text-[#DE3156] mb-1">10+</div>
+                <div className="text-sm text-gray-600">Ateliers réguliers</div>
+              </motion.div>
+
+              <motion.div
+                whileHover={{ scale: 1.05, y: -5 }}
+                className="bg-gradient-to-br from-[#F49928]/10 to-[#F49928]/5 p-6 rounded-2xl border-2 border-[#F49928]/20"
+              >
+                <div className="text-4xl mb-3">🎭</div>
+                <div className="text-2xl font-bold text-[#F49928] mb-1">20+</div>
+                <div className="text-sm text-gray-600">Événements par an</div>
+              </motion.div>
+
+              <motion.div
+                whileHover={{ scale: 1.05, y: -5 }}
+                className="bg-gradient-to-br from-[#00A8A8]/10 to-[#00A8A8]/5 p-6 rounded-2xl border-2 border-[#00A8A8]/20"
+              >
+                <div className="text-4xl mb-3">👥</div>
+                <div className="text-2xl font-bold text-[#00A8A8] mb-1">100+</div>
+                <div className="text-sm text-gray-600">Membres actifs</div>
+              </motion.div>
+
+              <motion.div
+                whileHover={{ scale: 1.05, y: -5 }}
+                className="bg-gradient-to-br from-purple-500/10 to-purple-500/5 p-6 rounded-2xl border-2 border-purple-500/20"
+              >
+                <div className="text-4xl mb-3">❤️</div>
+                <div className="text-2xl font-bold text-purple-600 mb-1">100%</div>
+                <div className="text-sm text-gray-600">Passion</div>
+              </motion.div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="bg-gradient-to-r from-[#F7EDE0] to-[#F7EDE0]/50 rounded-3xl p-8 text-center"
+          >
+            <h3 className="text-2xl font-bold mb-4 text-gray-800">Nos Valeurs</h3>
+            <div className="grid sm:grid-cols-3 gap-6 text-center">
+              <div>
+                <div className="text-3xl mb-2">🤝</div>
+                <h4 className="font-semibold text-lg mb-2">Partage</h4>
+                <p className="text-gray-600 text-sm">Créer du lien social et favoriser les échanges</p>
+              </div>
+              <div>
+                <div className="text-3xl mb-2">🌟</div>
+                <h4 className="font-semibold text-lg mb-2">Créativité</h4>
+                <p className="text-gray-600 text-sm">Encourager l'expression artistique et culturelle</p>
+              </div>
+              <div>
+                <div className="text-3xl mb-2">📚</div>
+                <h4 className="font-semibold text-lg mb-2">Apprentissage</h4>
+                <p className="text-gray-600 text-sm">Transmettre des savoir-faire et des connaissances</p>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
       {/* Prochaines Activités */}
       <section ref={ref} className="py-12 sm:py-16 md:py-20 bg-[#F7EDE0]/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

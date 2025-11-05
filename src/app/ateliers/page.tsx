@@ -302,10 +302,36 @@ function WorkshopCard({ workshop, index, inView }: { workshop: Workshop; index: 
                       ♻️ Récurrent
                     </span>
                   )}
-                  {workshop.requiresRegistration && (
-                    <span className={`inline-block ${THEME_CLASSES.bgPrimary} bg-opacity-10 ${THEME_CLASSES.textPrimary} px-3 py-2 rounded-full text-sm font-semibold`}>
-                      Inscription requise
-                    </span>
+                </div>
+                
+                <div className="mt-3 space-y-2">
+                  {workshop.requiresRegistration ? (
+                    <>
+                      <div className={`inline-block ${THEME_CLASSES.bgPrimary} bg-opacity-10 ${THEME_CLASSES.textPrimary} px-3 py-2 rounded-full text-sm font-semibold`}>
+                        ✅ Inscription requise
+                      </div>
+                      {workshop.maxParticipants && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <span className="font-medium">Places :</span>
+                          <span className={`font-bold ${
+                            workshop.currentParticipants >= workshop.maxParticipants 
+                              ? 'text-red-600' 
+                              : workshop.currentParticipants >= workshop.maxParticipants * 0.8 
+                                ? 'text-orange-600' 
+                                : 'text-green-600'
+                          }`}>
+                            {workshop.currentParticipants}/{workshop.maxParticipants}
+                          </span>
+                          {workshop.currentParticipants >= workshop.maxParticipants && (
+                            <span className="text-red-600 font-semibold">Complet</span>
+                          )}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="inline-block bg-gray-100 text-gray-600 px-3 py-2 rounded-full text-sm font-semibold">
+                      🔓 Accès libre
+                    </div>
                   )}
                 </div>
               </div>

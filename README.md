@@ -1,30 +1,53 @@
 # 🎨 Anim'Media - Plateforme de Gestion d'Activités Culturelles
 
-Application web moderne pour gérer les ateliers et événements culturels d'une association, avec système d'adhésion et gestion administrative.
+Site vitrine et plateforme de gestion pour l'association Anim'Média. Permet aux visiteurs de découvrir les activités proposées, de s'inscrire aux événements et ateliers, et d'adhérer à l'association.
 
 ## ✨ Fonctionnalités
 
-### 👥 Gestion des Utilisateurs
-- ✅ Authentification Firebase (email/password)
-- ✅ Système de rôles (User / Admin)
-- ✅ Premier inscrit devient automatiquement admin
-- ✅ Gestion des adhésions avec dates d'expiration
-- ✅ Profils utilisateurs complets
+### 🏠 Vitrine de l'Association
+- ✅ **Page d'accueil attractive** avec présentation de l'association
+- ✅ **Section "À propos"** avec mission, valeurs et statistiques
+- ✅ **Affichage des prochaines activités** (événements et ateliers)
+- ✅ **Section adhésion** mise en avant avec avantages détaillés
+- ✅ **Design responsive** et animations fluides
 
-### 🎭 Ateliers Récurrents
+### 👥 Gestion des Visiteurs
+- ✅ **Consultation libre** des événements et ateliers
+- ✅ **Authentification Firebase** (email/password) pour s'inscrire
+- ✅ **Système de rôles** (User / Admin)
+- ✅ **Premier inscrit devient automatiquement admin**
+- ✅ **Profils utilisateurs** complets
+
+### 💳 Système d'Adhésion
+- ✅ **Page dédiée à l'adhésion** avec tarifs et avantages
+- ✅ **Adhésion à 15€/an** avec génération de numéro d'adhérent
+- ✅ **Gestion des dates d'expiration** d'adhésion
+- ✅ **Statuts d'adhésion** (Actif / Expiré / Aucun)
+- ✅ **Avantages clairement présentés** (accès prioritaire, tarifs réduits, etc.)
+
+### 📝 Inscription aux Activités
+- ✅ **Indication claire** : inscription requise ou accès libre
+- ✅ **Affichage des places disponibles** avec barre de progression
+- ✅ **Gestion des inscriptions** complète (inscription/désinscription)
+- ✅ **État "Complet"** visible quand plus de places
+- ✅ **Connexion requise** uniquement pour s'inscrire (pas pour consulter)
+
+### 🎭 Événements Ponctuels
+- ✅ Création d'événements uniques
+- ✅ **Affichage détaillé** avec toutes les informations pratiques
+- ✅ Limitation du nombre de participants
+- ✅ Catégorisation et filtres
+- ✅ **Indicateurs visuels** (places, inscription requise/libre)
+
+### � Ateliers Récurrents
 - ✅ **Ateliers récurrents** avec récurrence personnalisable (hebdo, bi-hebdo, mensuel)
 - ✅ Sélection des jours de la semaine
 - ✅ Périodes saisonnières optionnelles (ex: septembre à juin)
 - ✅ **Périodes d'interruption** (vacances, fermetures, etc.)
 - ✅ Génération automatique du calendrier des séances
-- ✅ Affichage de la prochaine séance
+- ✅ **Affichage de la prochaine séance** mise en avant
 - ✅ Filtrage par catégories et niveaux
-
-### 📅 Événements Ponctuels
-- ✅ Création d'événements uniques
-- ✅ Gestion des inscriptions
-- ✅ Limitation du nombre de participants
-- ✅ Catégorisation et filtres
+- ✅ **Indicateurs visuels** (places, inscription requise/libre, récurrence)
 
 ### 🔐 Espace Admin
 - ✅ Dashboard de gestion complet
@@ -39,6 +62,7 @@ Application web moderne pour gérer les ateliers et événements culturels d'une
 - ✅ Thème personnalisé avec couleurs de l'association
 - ✅ Composants UI shadcn/ui
 - ✅ Navigation intuitive
+- ✅ **Accessibilité** pour visiteurs non connectés
 
 ## 🛠️ Technologies
 
@@ -48,6 +72,85 @@ Application web moderne pour gérer les ateliers et événements culturels d'une
 - **Backend** : Firebase (Auth, Firestore, Storage)
 - **Animations** : Framer Motion
 - **UI Components** : shadcn/ui + Radix UI
+- **Date** : date-fns
+- **Notifications** : Sonner
+
+## 📦 Installation
+
+```bash
+# Cloner le repository
+git clone https://github.com/KevinROUXPro/anim-media.git
+
+# Installer les dépendances
+npm install
+
+# Configurer Firebase
+# Créer un fichier .env.local avec vos clés Firebase :
+NEXT_PUBLIC_FIREBASE_API_KEY=votre_api_key
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=votre_auth_domain
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=votre_project_id
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=votre_storage_bucket
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=votre_messaging_sender_id
+NEXT_PUBLIC_FIREBASE_APP_ID=votre_app_id
+
+# Lancer le serveur de développement
+npm run dev
+```
+
+Le site sera accessible sur [http://localhost:3000](http://localhost:3000)
+
+## 🚀 Déploiement
+
+Le projet est configuré pour un déploiement sur Vercel. Consultez la [documentation de déploiement](./docs/DEPLOYMENT.md) pour plus de détails.
+
+## 📚 Documentation
+
+- [Guide de déploiement](./docs/DEPLOYMENT.md)
+- [Checklist de déploiement](./docs/DEPLOYMENT_CHECKLIST.md)
+- [Configuration Firebase](./docs/FIREBASE_SETUP.md)
+
+## 🎯 Utilisation
+
+### Pour les Visiteurs
+1. Consultez les événements et ateliers disponibles
+2. Créez un compte gratuit pour vous inscrire
+3. Adhérez à l'association (15€/an) pour bénéficier d'avantages
+4. Inscrivez-vous aux activités qui vous intéressent
+
+### Pour les Administrateurs
+1. Le premier utilisateur inscrit devient automatiquement admin
+2. Accédez à l'espace admin via `/admin`
+3. Créez et gérez les événements et ateliers
+4. Suivez les inscriptions et les adhésions
+5. Gérez les utilisateurs
+
+## 🎨 Personnalisation
+
+Les couleurs de l'association sont configurées dans :
+- `src/config/theme.ts` - Configuration des thèmes
+- `tailwind.config.ts` - Configuration Tailwind
+
+Couleurs principales :
+- 🔴 Rouge Anim'Média : `#DE3156`
+- 🟠 Orange : `#F49928`
+- 🔵 Bleu-vert : `#00A8A8`
+- 🟡 Beige : `#F7EDE0`
+
+## 📝 License
+
+Ce projet est sous licence MIT.
+
+## 👨‍💻 Auteur
+
+Kevin ROUX - [GitHub](https://github.com/KevinROUXPro)
+
+## 🤝 Contribution
+
+Les contributions sont les bienvenues ! N'hésitez pas à ouvrir une issue ou une pull request.
+
+---
+
+**Anim'Média** - Association culturelle pour tous 🎨📚💻
 - **Dates** : date-fns
 - **Icons** : Lucide React
 

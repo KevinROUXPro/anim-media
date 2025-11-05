@@ -106,45 +106,56 @@ export function RegisterButton({
   };
 
   if (!requiresRegistration) {
-    return (
-      <div className="text-sm text-gray-500 italic">
-        Accès libre - Aucune inscription nécessaire
-      </div>
-    );
+    return null; // Ne rien afficher si l'inscription n'est pas requise
   }
 
   if (checking) {
-    return <Button disabled>Chargement...</Button>;
+    return <Button disabled size="lg" className="w-full sm:w-auto min-w-[200px]">Chargement...</Button>;
   }
 
   if (!user) {
     return (
-      <Button onClick={() => router.push('/login')} size="lg" className="w-full">
-        Se connecter pour s'inscrire
-      </Button>
+      <div className="w-full flex flex-col items-center gap-3">
+        <Button 
+          onClick={() => router.push('/login')} 
+          size="lg" 
+          className={`w-full sm:w-auto ${THEME_CLASSES.buttonPrimary} min-w-[250px]`}
+        >
+          🔐 Se connecter pour s'inscrire
+        </Button>
+        <p className="text-sm text-gray-600 text-center">
+          Vous devez être connecté pour vous inscrire à cette activité
+        </p>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3 w-full flex flex-col items-center">
       {isRegistered ? (
-        <Button 
-          variant="outline" 
-          onClick={handleUnregister} 
-          disabled={loading}
-          size="lg"
-          className="w-full"
-        >
-          {loading ? 'Désinscription...' : '✓ Inscrit - Se désinscrire'}
-        </Button>
+        <>
+          <div className="bg-green-100 border-2 border-green-500 rounded-lg p-4 text-center w-full max-w-md">
+            <p className="text-green-700 font-semibold mb-2">✅ Vous êtes inscrit !</p>
+            <p className="text-sm text-green-600">Nous avons hâte de vous voir.</p>
+          </div>
+          <Button 
+            variant="outline" 
+            onClick={handleUnregister} 
+            disabled={loading}
+            size="lg"
+            className="w-full sm:w-auto border-2 border-red-300 text-red-600 hover:bg-red-50"
+          >
+            {loading ? 'Désinscription...' : '❌ Se désinscrire'}
+          </Button>
+        </>
       ) : (
         <Button 
           onClick={handleRegister} 
           disabled={loading}
           size="lg"
-          className={`w-full ${THEME_CLASSES.buttonPrimary}`}
+          className={`w-full sm:w-auto ${THEME_CLASSES.buttonPrimary} min-w-[250px] text-lg`}
         >
-          {loading ? 'Inscription...' : 'S\'inscrire'}
+          {loading ? 'Inscription en cours...' : '✨ S\'inscrire maintenant'}
         </Button>
       )}
     </div>

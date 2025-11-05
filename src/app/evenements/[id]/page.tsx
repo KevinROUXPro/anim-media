@@ -168,8 +168,76 @@ export default function EventDetailPage() {
                 </p>
               </div>
 
+              {/* Informations sur l'inscription */}
+              <div className="mb-8 bg-gradient-to-r from-[#F7EDE0] to-[#F7EDE0]/50 rounded-2xl p-6">
+                <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                  {event.requiresRegistration ? '✅' : '🔓'} 
+                  {event.requiresRegistration ? 'Inscription' : 'Accès'}
+                </h3>
+                
+                {event.requiresRegistration ? (
+                  <div className="space-y-3">
+                    <p className="text-gray-700">
+                      <strong>Inscription requise</strong> pour participer à cet événement.
+                    </p>
+                    
+                    {event.maxParticipants && (
+                      <div className="bg-white rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-medium text-gray-700">Places disponibles :</span>
+                          <span className={`text-xl font-bold ${
+                            event.currentParticipants >= event.maxParticipants 
+                              ? 'text-red-600' 
+                              : event.currentParticipants >= event.maxParticipants * 0.8 
+                                ? 'text-orange-600' 
+                                : 'text-green-600'
+                          }`}>
+                            {event.maxParticipants - event.currentParticipants} / {event.maxParticipants}
+                          </span>
+                        </div>
+                        
+                        {/* Barre de progression */}
+                        <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                          <div 
+                            className={`h-full rounded-full transition-all duration-500 ${
+                              event.currentParticipants >= event.maxParticipants 
+                                ? 'bg-red-600' 
+                                : event.currentParticipants >= event.maxParticipants * 0.8 
+                                  ? 'bg-orange-600' 
+                                  : 'bg-green-600'
+                            }`}
+                            style={{ width: `${(event.currentParticipants / event.maxParticipants) * 100}%` }}
+                          ></div>
+                        </div>
+                        
+                        {event.currentParticipants >= event.maxParticipants && (
+                          <p className="text-red-600 font-semibold mt-2 flex items-center gap-2">
+                            ⚠️ Événement complet
+                          </p>
+                        )}
+                      </div>
+                    )}
+                    
+                    {!isPast && (
+                      <p className="text-sm text-gray-600">
+                        💡 Vous devez être connecté pour vous inscrire.
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div>
+                    <p className="text-gray-700">
+                      <strong>Accès libre</strong> - Aucune inscription nécessaire. Venez simplement nous rejoindre !
+                    </p>
+                    <p className="text-sm text-gray-600 mt-2">
+                      📍 Rendez-vous à : <strong>{event.location}</strong>
+                    </p>
+                  </div>
+                )}
+              </div>
+
               {/* Bouton d'inscription */}
-              {!isPast && (
+              {!isPast && event.requiresRegistration && (
                 <motion.div 
                   className="flex justify-center pt-6 border-t"
                   initial={{ opacity: 0, y: 20 }}
@@ -179,6 +247,7 @@ export default function EventDetailPage() {
                   <RegisterButton
                     activityId={event.id}
                     activityType="event"
+                    requiresRegistration={event.requiresRegistration}
                   />
                 </motion.div>
               )}

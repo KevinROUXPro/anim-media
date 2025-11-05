@@ -323,6 +323,72 @@ export default function WorkshopDetailPage() {
                 </div>
               )}
 
+              {/* Informations sur l'inscription */}
+              <div className="mb-8 bg-gradient-to-r from-[#F7EDE0] to-[#F7EDE0]/50 rounded-2xl p-6">
+                <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                  {workshop.requiresRegistration ? '✅' : '🔓'} 
+                  {workshop.requiresRegistration ? 'Inscription' : 'Accès'}
+                </h3>
+                
+                {workshop.requiresRegistration ? (
+                  <div className="space-y-3">
+                    <p className="text-gray-700">
+                      <strong>Inscription requise</strong> pour participer à cet atelier.
+                    </p>
+                    
+                    {workshop.maxParticipants && (
+                      <div className="bg-white rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-medium text-gray-700">Places disponibles :</span>
+                          <span className={`text-xl font-bold ${
+                            workshop.currentParticipants >= workshop.maxParticipants 
+                              ? 'text-red-600' 
+                              : workshop.currentParticipants >= workshop.maxParticipants * 0.8 
+                                ? 'text-orange-600' 
+                                : 'text-green-600'
+                          }`}>
+                            {workshop.maxParticipants - workshop.currentParticipants} / {workshop.maxParticipants}
+                          </span>
+                        </div>
+                        
+                        {/* Barre de progression */}
+                        <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                          <div 
+                            className={`h-full rounded-full transition-all duration-500 ${
+                              workshop.currentParticipants >= workshop.maxParticipants 
+                                ? 'bg-red-600' 
+                                : workshop.currentParticipants >= workshop.maxParticipants * 0.8 
+                                  ? 'bg-orange-600' 
+                                  : 'bg-green-600'
+                            }`}
+                            style={{ width: `${(workshop.currentParticipants / workshop.maxParticipants) * 100}%` }}
+                          ></div>
+                        </div>
+                        
+                        {workshop.currentParticipants >= workshop.maxParticipants && (
+                          <p className="text-red-600 font-semibold mt-2 flex items-center gap-2">
+                            ⚠️ Atelier complet
+                          </p>
+                        )}
+                      </div>
+                    )}
+                    
+                    <p className="text-sm text-gray-600">
+                      💡 Vous devez être connecté pour vous inscrire.
+                    </p>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="text-gray-700">
+                      <strong>Accès libre</strong> - Aucune inscription nécessaire. Venez simplement nous rejoindre !
+                    </p>
+                    <p className="text-sm text-gray-600 mt-2">
+                      📍 Rendez-vous à : <strong>{workshop.location}</strong>
+                    </p>
+                  </div>
+                )}
+              </div>
+
               {/* Calendrier des prochaines séances (pour ateliers récurrents) */}
               {workshop.isRecurring && upcomingSessions.length > 0 && (
                 <div className="mb-8">
@@ -356,7 +422,7 @@ export default function WorkshopDetailPage() {
               )}
 
               {/* Bouton d'inscription */}
-              {nextSession && (
+              {nextSession && workshop.requiresRegistration && (
                 <motion.div 
                   className="flex justify-center pt-6 border-t"
                   initial={{ opacity: 0, y: 20 }}
@@ -366,6 +432,7 @@ export default function WorkshopDetailPage() {
                   <RegisterButton
                     activityId={workshop.id}
                     activityType="workshop"
+                    requiresRegistration={workshop.requiresRegistration}
                   />
                 </motion.div>
               )}

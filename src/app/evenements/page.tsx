@@ -236,11 +236,37 @@ function EventCard({ event, index, inView }: { event: Event; index: number; inVi
               <p className="text-sm font-medium text-gray-600 flex items-center gap-2 mb-3">
                 📍 {event.location}
               </p>
-              {event.requiresRegistration && (
-                <div className={`mt-3 inline-block ${THEME_CLASSES.bgPrimary} bg-opacity-10 ${THEME_CLASSES.textPrimary} px-4 py-2 rounded-full text-sm font-semibold`}>
-                  Inscription requise
-                </div>
-              )}
+              
+              <div className="space-y-2">
+                {event.requiresRegistration ? (
+                  <>
+                    <div className={`inline-block ${THEME_CLASSES.bgPrimary} bg-opacity-10 ${THEME_CLASSES.textPrimary} px-4 py-2 rounded-full text-sm font-semibold`}>
+                      ✅ Inscription requise
+                    </div>
+                    {event.maxParticipants && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="font-medium">Places :</span>
+                        <span className={`font-bold ${
+                          event.currentParticipants >= event.maxParticipants 
+                            ? 'text-red-600' 
+                            : event.currentParticipants >= event.maxParticipants * 0.8 
+                              ? 'text-orange-600' 
+                              : 'text-green-600'
+                        }`}>
+                          {event.currentParticipants}/{event.maxParticipants}
+                        </span>
+                        {event.currentParticipants >= event.maxParticipants && (
+                          <span className="text-red-600 font-semibold">Complet</span>
+                        )}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="inline-block bg-gray-100 text-gray-600 px-4 py-2 rounded-full text-sm font-semibold">
+                    🔓 Accès libre
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
         </motion.div>
