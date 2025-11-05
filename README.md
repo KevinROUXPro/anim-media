@@ -204,6 +204,13 @@ export const THEME_COLORS = {
 
 Remplacez `public/logo.png` par votre logo
 
+## 📚 Documentation
+
+- 📖 [Guide de déploiement Vercel](./docs/DEPLOYMENT.md)
+- ✅ [Checklist de déploiement](./docs/DEPLOYMENT_CHECKLIST.md)
+- 🔥 [Configuration Firebase](./docs/FIREBASE_SETUP.md)
+- 📋 [Index complet de la documentation](./docs/README.md)
+
 ## 🤝 Contribution
 
 Les contributions sont les bienvenues ! N'hésitez pas à ouvrir une issue ou une pull request.

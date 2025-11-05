@@ -67,6 +67,11 @@ export default function Home() {
           return {
             ...data,
             id: doc.id,
+            isRecurring: data.isRecurring || false,
+            recurrenceDays: data.recurrenceDays || [],
+            recurrenceInterval: data.recurrenceInterval || 1,
+            startTime: data.startTime || '14:00',
+            endTime: data.endTime || '16:00',
             createdAt: data.createdAt.toDate(),
             updatedAt: data.updatedAt.toDate(),
             startDate: data.startDate?.toDate(),

@@ -159,7 +159,7 @@ if ($errors -eq 0) {
     Write-Host "1. git add ." -ForegroundColor White
     Write-Host "2. git commit -m 'Ready for deployment'" -ForegroundColor White
     Write-Host "3. git push" -ForegroundColor White
-    Write-Host "4. Deployez sur Vercel (voir DEPLOYMENT.md)" -ForegroundColor White
+    Write-Host "4. Deployez sur Vercel (voir docs/DEPLOYMENT.md)" -ForegroundColor White
     Write-Host ""
     exit 0
 } else {

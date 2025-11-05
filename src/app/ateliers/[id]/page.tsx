@@ -31,6 +31,11 @@ export default function WorkshopDetailPage() {
           setWorkshop({
             id: workshopDoc.id,
             ...data,
+            isRecurring: data.isRecurring || false,
+            recurrenceDays: data.recurrenceDays || [],
+            recurrenceInterval: data.recurrenceInterval || 1,
+            startTime: data.startTime || '14:00',
+            endTime: data.endTime || '16:00',
             seasonStartDate: data.seasonStartDate?.toDate(),
             seasonEndDate: data.seasonEndDate?.toDate(),
             cancellationPeriods: data.cancellationPeriods?.map((p: any) => ({
