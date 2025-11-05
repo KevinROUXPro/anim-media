@@ -17,12 +17,14 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const { signIn } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(''); // Réinitialiser l'erreur
 
     try {
       await signIn(email, password);
@@ -36,13 +38,17 @@ export default function LoginPage() {
       router.push('/profil');
     } catch (error: any) {
       console.error('Login error:', error);
+      let errorMessage = 'Erreur lors de la connexion';
+      
       if (error.code === 'auth/invalid-credential') {
-        toast.error('Email ou mot de passe incorrect');
+        errorMessage = 'Email ou mot de passe incorrect';
       } else if (error.code === 'auth/user-not-found') {
-        toast.error('Aucun compte ne correspond à cet email');
-      } else {
-        toast.error('Erreur lors de la connexion');
+        errorMessage = 'Aucun compte ne correspond à cet email';
+      } else if (error.code === 'auth/too-many-requests') {
+        errorMessage = 'Trop de tentatives. Veuillez réessayer plus tard';
       }
+      
+      setError(errorMessage);
       setLoading(false);
     }
   };
@@ -139,6 +145,25 @@ export default function LoginPage() {
                   className="h-12 text-base"
                 />
               </motion.div>
+
+              {/* Message d'erreur */}
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-red-50 border-2 border-red-500 rounded-lg p-4 flex items-start gap-3"
+                >
+                  <div className="flex-shrink-0">
+                    <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-red-800 font-bold text-base mb-1">Erreur de connexion</h3>
+                    <p className="text-red-700 text-sm">{error}</p>
+                  </div>
+                </motion.div>
+              )}
 
               <motion.div
                 initial={{ opacity: 0, y: 20 }}

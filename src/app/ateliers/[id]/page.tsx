@@ -283,7 +283,7 @@ export default function WorkshopDetailPage() {
                   <div>
                     <div className="text-sm text-gray-500">Participants</div>
                     <div className="font-semibold">
-                      {workshop.currentParticipants} / {workshop.maxParticipants}
+                      {workshop.currentParticipants || 0} / {workshop.maxParticipants}
                     </div>
                   </div>
                 </div>
@@ -341,13 +341,13 @@ export default function WorkshopDetailPage() {
                         <div className="flex items-center justify-between mb-2">
                           <span className="font-medium text-gray-700">Places disponibles :</span>
                           <span className={`text-xl font-bold ${
-                            workshop.currentParticipants >= workshop.maxParticipants 
+                            (workshop.currentParticipants || 0) >= workshop.maxParticipants 
                               ? 'text-red-600' 
-                              : workshop.currentParticipants >= workshop.maxParticipants * 0.8 
+                              : (workshop.currentParticipants || 0) >= workshop.maxParticipants * 0.8 
                                 ? 'text-orange-600' 
                                 : 'text-green-600'
                           }`}>
-                            {workshop.maxParticipants - workshop.currentParticipants} / {workshop.maxParticipants}
+                            {workshop.maxParticipants - (workshop.currentParticipants || 0)} / {workshop.maxParticipants}
                           </span>
                         </div>
                         
@@ -355,17 +355,17 @@ export default function WorkshopDetailPage() {
                         <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                           <div 
                             className={`h-full rounded-full transition-all duration-500 ${
-                              workshop.currentParticipants >= workshop.maxParticipants 
+                              (workshop.currentParticipants || 0) >= workshop.maxParticipants 
                                 ? 'bg-red-600' 
-                                : workshop.currentParticipants >= workshop.maxParticipants * 0.8 
+                                : (workshop.currentParticipants || 0) >= workshop.maxParticipants * 0.8 
                                   ? 'bg-orange-600' 
                                   : 'bg-green-600'
                             }`}
-                            style={{ width: `${(workshop.currentParticipants / workshop.maxParticipants) * 100}%` }}
+                            style={{ width: `${((workshop.currentParticipants || 0) / workshop.maxParticipants) * 100}%` }}
                           ></div>
                         </div>
                         
-                        {workshop.currentParticipants >= workshop.maxParticipants && (
+                        {(workshop.currentParticipants || 0) >= workshop.maxParticipants && (
                           <p className="text-red-600 font-semibold mt-2 flex items-center gap-2">
                             ⚠️ Atelier complet
                           </p>

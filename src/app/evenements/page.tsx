@@ -162,7 +162,7 @@ export default function EventsPage() {
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
               variants={staggerContainer}
               initial="hidden"
-              animate={inView ? "visible" : "hidden"}
+              animate="visible"
             >
               {filteredEvents.map((event, index) => (
                 <EventCard key={event.id} event={event} index={index} inView={inView} />
@@ -190,7 +190,11 @@ function EventCard({ event, index, inView }: { event: Event; index: number; inVi
   const categoryInfo = CATEGORY_LABELS[event.category];
 
   return (
-    <motion.div variants={staggerItem}>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: index * 0.1 }}
+    >
       <Link href={`/evenements/${event.id}`}>
         <motion.div
           whileHover={{ 
@@ -207,7 +211,13 @@ function EventCard({ event, index, inView }: { event: Event; index: number; inVi
         >
           <Card className={`h-full transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-[#DE3156]/50 ${THEME_CLASSES.cardHover} bg-white/90 backdrop-blur-sm`}>
             {event.imageUrl && (
-              <div className={`h-48 ${THEME_CLASSES.sectionEvents} rounded-t-lg`}></div>
+              <div className="h-48 w-full relative overflow-hidden rounded-t-lg">
+                <img
+                  src={event.imageUrl}
+                  alt={event.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
             )}
             <CardHeader>
               <div className="flex items-center gap-3 mb-3">
@@ -247,15 +257,15 @@ function EventCard({ event, index, inView }: { event: Event; index: number; inVi
                       <div className="flex items-center gap-2 text-sm">
                         <span className="font-medium">Places :</span>
                         <span className={`font-bold ${
-                          event.currentParticipants >= event.maxParticipants 
+                          (event.currentParticipants || 0) >= event.maxParticipants 
                             ? 'text-red-600' 
-                            : event.currentParticipants >= event.maxParticipants * 0.8 
+                            : (event.currentParticipants || 0) >= event.maxParticipants * 0.8 
                               ? 'text-orange-600' 
                               : 'text-green-600'
                         }`}>
-                          {event.currentParticipants}/{event.maxParticipants}
+                          {event.currentParticipants || 0}/{event.maxParticipants}
                         </span>
-                        {event.currentParticipants >= event.maxParticipants && (
+                        {(event.currentParticipants || 0) >= event.maxParticipants && (
                           <span className="text-red-600 font-semibold">Complet</span>
                         )}
                       </div>

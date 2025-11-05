@@ -152,7 +152,7 @@ export default function EventDetailPage() {
                   <Users className={`h-5 w-5 ${THEME_CLASSES.textPrimary}`} />
                   <div>
                     <div className="font-semibold">
-                      {event.currentParticipants} / {event.maxParticipants} participants
+                      {event.currentParticipants || 0} / {event.maxParticipants} participants
                     </div>
                   </div>
                 </div>
@@ -186,13 +186,13 @@ export default function EventDetailPage() {
                         <div className="flex items-center justify-between mb-2">
                           <span className="font-medium text-gray-700">Places disponibles :</span>
                           <span className={`text-xl font-bold ${
-                            event.currentParticipants >= event.maxParticipants 
+                            (event.currentParticipants || 0) >= event.maxParticipants 
                               ? 'text-red-600' 
-                              : event.currentParticipants >= event.maxParticipants * 0.8 
+                              : (event.currentParticipants || 0) >= event.maxParticipants * 0.8 
                                 ? 'text-orange-600' 
                                 : 'text-green-600'
                           }`}>
-                            {event.maxParticipants - event.currentParticipants} / {event.maxParticipants}
+                            {event.maxParticipants - (event.currentParticipants || 0)} / {event.maxParticipants}
                           </span>
                         </div>
                         
@@ -200,17 +200,17 @@ export default function EventDetailPage() {
                         <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                           <div 
                             className={`h-full rounded-full transition-all duration-500 ${
-                              event.currentParticipants >= event.maxParticipants 
+                              (event.currentParticipants || 0) >= event.maxParticipants 
                                 ? 'bg-red-600' 
-                                : event.currentParticipants >= event.maxParticipants * 0.8 
+                                : (event.currentParticipants || 0) >= event.maxParticipants * 0.8 
                                   ? 'bg-orange-600' 
                                   : 'bg-green-600'
                             }`}
-                            style={{ width: `${(event.currentParticipants / event.maxParticipants) * 100}%` }}
+                            style={{ width: `${((event.currentParticipants || 0) / event.maxParticipants) * 100}%` }}
                           ></div>
                         </div>
                         
-                        {event.currentParticipants >= event.maxParticipants && (
+                        {(event.currentParticipants || 0) >= event.maxParticipants && (
                           <p className="text-red-600 font-semibold mt-2 flex items-center gap-2">
                             ⚠️ Événement complet
                           </p>

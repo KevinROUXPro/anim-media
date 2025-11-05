@@ -5,6 +5,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { Navbar } from "@/components/Navbar";
 import { Toaster } from "@/components/ui/sonner";
 import { AutoLogout } from "@/components/AutoLogout";
+import { ScrollToTop } from "@/components/ScrollToTop";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -25,6 +26,7 @@ export default function RootLayout({
     <html lang="fr">
       <body className={`${inter.className} antialiased`}>
         <AuthProvider>
+          <ScrollToTop />
           <Navbar />
           <AutoLogout inactivityTimeout={30 * 60 * 1000} />
           <main>{children}</main>

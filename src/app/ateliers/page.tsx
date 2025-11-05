@@ -56,7 +56,24 @@ export default function WorkshopsPage() {
         
         // Filtrer les ateliers dont la saison est terminée
         const activeWorkshops = workshopsData.filter(w => {
+          // Si l'atelier est récurrent, vérifier s'il a une prochaine séance
+          if (w.isRecurring) {
+            const nextSession = getNextSession(
+              w.recurrenceDays || [],
+              w.recurrenceInterval || 1,
+              w.seasonStartDate,
+              w.seasonEndDate,
+              w.startTime || '14:00',
+              w.cancellationPeriods
+            );
+            // Afficher l'atelier s'il a une prochaine séance OU si aucune date de fin n'est définie
+            return nextSession !== null || !w.seasonEndDate;
+          }
+          
+          // Pour les ateliers ponctuels (ancienne structure ou non-récurrents)
+          // Afficher si pas de seasonEndDate OU si elle n'est pas encore passée
           if (w.seasonEndDate && w.seasonEndDate < new Date()) return false;
+          
           return true;
         });
         
@@ -178,36 +195,38 @@ export default function WorkshopsPage() {
             >
               <div className={`rounded-full h-16 w-16 border-4 border-t-transparent ${THEME_CLASSES.borderPrimary}`}></div>
             </motion.div>
-          ) : filteredWorkshops.length > 0 ? (
-            <motion.div 
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-              variants={staggerContainer}
-              initial="hidden"
-              animate={inView ? "visible" : "hidden"}
-            >
-              {filteredWorkshops.map((workshop, index) => (
-                <WorkshopCard key={workshop.id} workshop={workshop} index={index} inView={inView} />
-              ))}
-            </motion.div>
-          ) : (
-            <motion.div 
-              className="text-center py-16"
-              variants={fadeInUp}
-              initial="hidden"
-              animate="visible"
-            >
-              <p className="text-gray-600 text-xl font-medium">
-                Aucun atelier trouvé dans cette catégorie.
-              </p>
-            </motion.div>
-          )}
+          ) : (() => {
+            return filteredWorkshops.length > 0 ? (
+              <motion.div 
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+                variants={staggerContainer}
+                initial="hidden"
+                animate="visible"
+              >
+                {filteredWorkshops.map((workshop, index) => (
+                  <WorkshopCard key={workshop.id} workshop={workshop} index={index} />
+                ))}
+              </motion.div>
+            ) : (
+              <motion.div 
+                className="text-center py-16"
+                variants={fadeInUp}
+                initial="hidden"
+                animate="visible"
+              >
+                <p className="text-gray-600 text-xl font-medium">
+                  Aucun atelier trouvé dans cette catégorie.
+                </p>
+              </motion.div>
+            );
+          })()}
         </div>
       </section>
     </div>
   );
 }
 
-function WorkshopCard({ workshop, index, inView }: { workshop: Workshop; index: number; inView: boolean }) {
+function WorkshopCard({ workshop, index }: { workshop: Workshop; index: number }) {
   const categoryInfo = CATEGORY_LABELS[workshop.category];
   
   // Pour les ateliers récurrents, calculer la prochaine séance
@@ -223,7 +242,11 @@ function WorkshopCard({ workshop, index, inView }: { workshop: Workshop; index: 
     : null;
 
   return (
-    <motion.div variants={staggerItem}>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: index * 0.1 }}
+    >
       <Link href={`/ateliers/${workshop.id}`}>
         <motion.div
           whileHover={{ 
@@ -240,7 +263,13 @@ function WorkshopCard({ workshop, index, inView }: { workshop: Workshop; index: 
         >
           <Card className={`h-full transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-[#00A8A8]/50 ${THEME_CLASSES.cardHover} bg-white/90 backdrop-blur-sm`}>
             {workshop.imageUrl && (
-              <div className={`h-48 ${THEME_CLASSES.sectionWorkshops} rounded-t-lg`}></div>
+              <div className="h-48 w-full relative overflow-hidden rounded-t-lg">
+                <img
+                  src={workshop.imageUrl}
+                  alt={workshop.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
             )}
             <CardHeader>
               <div className="flex items-center gap-3 mb-3">
@@ -287,18 +316,22 @@ function WorkshopCard({ workshop, index, inView }: { workshop: Workshop; index: 
             <CardContent>
               <p className="text-gray-700 mb-4 line-clamp-2 text-base">{workshop.description}</p>
               <div className="space-y-2">
-                <p className="text-sm font-medium text-gray-600 flex items-center gap-2">
-                  👤 {workshop.instructor}
-                </p>
-                <p className="text-sm font-medium text-gray-600 flex items-center gap-2">
-                  📍 {workshop.location}
-                </p>
+                {workshop.instructor && (
+                  <p className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                    👤 {workshop.instructor}
+                  </p>
+                )}
+                {workshop.location && (
+                  <p className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                    📍 {workshop.location}
+                  </p>
+                )}
                 <div className="flex items-center gap-2 mt-3 flex-wrap">
-                  <span className={`inline-block ${THEME_CLASSES.bgSecondary} bg-opacity-10 ${THEME_CLASSES.textSecondary} px-3 py-2 rounded-full text-sm font-semibold`}>
-                    {LEVEL_LABELS[workshop.level]}
+                  <span className="inline-block bg-green-100 text-green-700 px-3 py-2 rounded-full text-sm font-semibold">
+                    📊 {LEVEL_LABELS[workshop.level]}
                   </span>
                   {workshop.isRecurring && (
-                    <span className={`inline-block bg-blue-100 text-blue-700 px-3 py-2 rounded-full text-sm font-semibold`}>
+                    <span className="inline-block bg-blue-100 text-blue-700 px-3 py-2 rounded-full text-sm font-semibold">
                       ♻️ Récurrent
                     </span>
                   )}
@@ -307,29 +340,29 @@ function WorkshopCard({ workshop, index, inView }: { workshop: Workshop; index: 
                 <div className="mt-3 space-y-2">
                   {workshop.requiresRegistration ? (
                     <>
-                      <div className={`inline-block ${THEME_CLASSES.bgPrimary} bg-opacity-10 ${THEME_CLASSES.textPrimary} px-3 py-2 rounded-full text-sm font-semibold`}>
+                      <div className="inline-block bg-red-100 text-red-700 px-3 py-2 rounded-full text-sm font-semibold">
                         ✅ Inscription requise
                       </div>
                       {workshop.maxParticipants && (
-                        <div className="flex items-center gap-2 text-sm">
-                          <span className="font-medium">Places :</span>
+                        <div className="flex items-center gap-2 text-sm mt-2">
+                          <span className="font-medium text-gray-700">Places :</span>
                           <span className={`font-bold ${
-                            workshop.currentParticipants >= workshop.maxParticipants 
+                            (workshop.currentParticipants || 0) >= workshop.maxParticipants 
                               ? 'text-red-600' 
-                              : workshop.currentParticipants >= workshop.maxParticipants * 0.8 
+                              : (workshop.currentParticipants || 0) >= workshop.maxParticipants * 0.8 
                                 ? 'text-orange-600' 
                                 : 'text-green-600'
                           }`}>
-                            {workshop.currentParticipants}/{workshop.maxParticipants}
+                            {workshop.currentParticipants || 0}/{workshop.maxParticipants}
                           </span>
-                          {workshop.currentParticipants >= workshop.maxParticipants && (
+                          {(workshop.currentParticipants || 0) >= workshop.maxParticipants && (
                             <span className="text-red-600 font-semibold">Complet</span>
                           )}
                         </div>
                       )}
                     </>
                   ) : (
-                    <div className="inline-block bg-gray-100 text-gray-600 px-3 py-2 rounded-full text-sm font-semibold">
+                    <div className="inline-block bg-gray-100 text-gray-700 px-3 py-2 rounded-full text-sm font-semibold">
                       🔓 Accès libre
                     </div>
                   )}

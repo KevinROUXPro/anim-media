@@ -89,24 +89,37 @@ export default function Home() {
         // Filtrer et trier les ateliers par prochaine séance
         const workshopsWithNextSession = allWorkshops
           .map(workshop => {
-            const nextSession = workshop.isRecurring
-              ? getNextSession(
-                  workshop.recurrenceDays || [],
-                  workshop.recurrenceInterval || 1,
-                  workshop.seasonStartDate,
-                  workshop.seasonEndDate,
-                  workshop.startTime || '14:00',
-                  workshop.cancellationPeriods
-                )
-              : workshop.startDate && workshop.startDate > new Date()
-                ? workshop.startDate
-                : null;
+            let nextSession: Date | null = null;
+            
+            if (workshop.isRecurring) {
+              nextSession = getNextSession(
+                workshop.recurrenceDays || [],
+                workshop.recurrenceInterval || 1,
+                workshop.seasonStartDate,
+                workshop.seasonEndDate,
+                workshop.startTime || '14:00',
+                workshop.cancellationPeriods
+              );
+            } else if (workshop.startDate && workshop.startDate > new Date()) {
+              nextSession = workshop.startDate;
+            }
+            
             return { workshop, nextSession };
           })
-          .filter(item => item.nextSession !== null)
+          .filter(item => {
+            // Afficher les ateliers avec une prochaine séance OU sans date de fin définie
+            return item.nextSession !== null || !item.workshop.seasonEndDate;
+          })
           .sort((a, b) => {
-            if (!a.nextSession || !b.nextSession) return 0;
-            return a.nextSession.getTime() - b.nextSession.getTime();
+            // Ateliers avec prochaine séance d'abord, triés par date
+            if (a.nextSession && b.nextSession) {
+              return a.nextSession.getTime() - b.nextSession.getTime();
+            }
+            // Ateliers sans prochaine séance en dernier
+            if (a.nextSession && !b.nextSession) return -1;
+            if (!a.nextSession && b.nextSession) return 1;
+            // Si aucun n'a de prochaine séance, trier par date de création (plus récent d'abord)
+            return 0;
           })
           .slice(0, 3)
           .map(item => item.workshop);
@@ -586,7 +599,9 @@ function ActivityCard({ title, description, date, category, location, href, dela
 
   return (
     <motion.div
-      variants={staggerItem}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: delay }}
     >
       <Link href={href}>
         <motion.div
@@ -670,7 +685,9 @@ function WorkshopCard({ workshop, delay, inView }: {
 
   return (
     <motion.div
-      variants={staggerItem}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: delay }}
     >
       <Link href={`/ateliers/${workshop.id}`}>
         <motion.div
