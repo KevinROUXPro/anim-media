@@ -40,6 +40,12 @@ export default function SignupPage() {
     try {
       await signUp(email, password, name);
       toast.success('Compte créé avec succès !');
+      
+      // Attendre un court instant pour que l'auth se propage
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Rafraîchir le router et rediriger
+      router.refresh();
       router.push('/profil');
     } catch (error: any) {
       console.error('Signup error:', error);
@@ -50,13 +56,12 @@ export default function SignupPage() {
       } else {
         toast.error('Erreur lors de la création du compte');
       }
-    } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-[#F7EDE0]/50 p-4 relative overflow-hidden">
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-[#F7EDE0]/50 p-3 sm:p-4 relative overflow-hidden">
       {/* Animated background shapes */}
       <motion.div
         animate={{
@@ -68,7 +73,7 @@ export default function SignupPage() {
           repeat: Infinity,
           ease: "linear"
         }}
-        className="absolute top-10 left-10 w-96 h-96 bg-gradient-to-br from-[#F49928]/20 to-[#DE3156]/20 rounded-full blur-3xl"
+        className="absolute top-10 left-10 w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 bg-gradient-to-br from-[#F49928]/20 to-[#DE3156]/20 rounded-full blur-3xl"
       />
       <motion.div
         animate={{
@@ -80,7 +85,7 @@ export default function SignupPage() {
           repeat: Infinity,
           ease: "linear"
         }}
-        className="absolute bottom-10 right-10 w-96 h-96 bg-gradient-to-br from-[#00C2CB]/20 to-[#00A8A8]/20 rounded-full blur-3xl"
+        className="absolute bottom-10 right-10 w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 bg-gradient-to-br from-[#00C2CB]/20 to-[#00A8A8]/20 rounded-full blur-3xl"
       />
       
       <motion.div
@@ -90,16 +95,16 @@ export default function SignupPage() {
         className="w-full max-w-md relative z-10"
       >
         <Card className="shadow-2xl border-2">
-          <CardHeader className="text-center pb-8">
+          <CardHeader className="text-center pb-6 sm:pb-8">
             <motion.div
               variants={slideInRight}
               initial="hidden"
               animate="visible"
             >
-              <CardTitle className={`text-5xl font-bold mb-4 ${THEME_CLASSES.textGradient}`}>
+              <CardTitle className={`text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4 ${THEME_CLASSES.textGradient}`}>
                 🎊 Créer un compte
               </CardTitle>
-              <CardDescription className="text-lg">
+              <CardDescription className="text-base sm:text-lg">
                 Rejoignez Anim'Média et inscrivez-vous à nos activités
               </CardDescription>
             </motion.div>

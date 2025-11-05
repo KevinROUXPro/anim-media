@@ -94,7 +94,7 @@ function AdhesionContent() {
                     Valable jusqu'au : <strong>{new Date(user.membershipExpiry).toLocaleDateString('fr-FR')}</strong>
                   </p>
                 )}
-                <Button onClick={() => router.push('/profil')} size="lg" className="mt-4">
+                <Button onClick={() => router.push('/profil')} size="lg" className="mt-4 w-full sm:w-auto">
                   Retour au profil
                 </Button>
               </CardContent>
@@ -146,33 +146,34 @@ function AdhesionContent() {
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
+                className="w-full"
               >
                 <Button
                   onClick={handleSubscribe}
                   disabled={loading}
                   size="lg"
-                  className={`${THEME_CLASSES.buttonPrimary} text-2xl py-8 px-12 h-auto font-bold shadow-xl`}
+                  className={`w-full ${THEME_CLASSES.buttonPrimary} text-xl sm:text-2xl py-6 sm:py-8 px-8 sm:px-12 h-auto font-bold shadow-xl`}
                 >
                   {loading ? (
                     <span className="flex items-center gap-2">
                       <motion.div
-                        className="h-6 w-6 border-4 border-white border-t-transparent rounded-full"
+                        className="h-5 w-5 sm:h-6 sm:w-6 border-4 border-white border-t-transparent rounded-full"
                         animate={{ rotate: 360 }}
                         transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                       />
                       Activation en cours...
                     </span>
                   ) : (
-                    <>
-                      <Star className="h-8 w-8 mr-3" />
+                    <span className="flex items-center justify-center">
+                      <Star className="h-6 w-6 sm:h-8 sm:w-8 mr-2 sm:mr-3" />
                       Adhérer Maintenant
-                      <Star className="h-8 w-8 ml-3" />
-                    </>
+                      <Star className="h-6 w-6 sm:h-8 sm:w-8 ml-2 sm:ml-3" />
+                    </span>
                   )}
                 </Button>
               </motion.div>
 
-              <p className="text-sm text-gray-500 mt-6">
+              <p className="text-xs sm:text-sm text-gray-500 mt-4 sm:mt-6 text-center">
                 ⚠️ Mode démo : L'adhésion est activée immédiatement sans paiement réel
               </p>
             </CardContent>

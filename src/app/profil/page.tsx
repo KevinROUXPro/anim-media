@@ -179,12 +179,12 @@ function ProfilContent() {
                   <Card>
                     <CardContent className="py-8 text-center text-gray-500">
                       <p className="mb-4">Aucune inscription à venir</p>
-                      <div className="flex gap-4 justify-center">
-                        <Link href="/evenements">
-                          <Button size="lg">Voir les événements</Button>
+                      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
+                        <Link href="/evenements" className="w-full sm:w-auto">
+                          <Button size="lg" className="w-full">Voir les événements</Button>
                         </Link>
-                        <Link href="/ateliers">
-                          <Button variant="outline" size="lg">Voir les ateliers</Button>
+                        <Link href="/ateliers" className="w-full sm:w-auto">
+                          <Button variant="outline" size="lg" className="w-full">Voir les ateliers</Button>
                         </Link>
                       </div>
                     </CardContent>

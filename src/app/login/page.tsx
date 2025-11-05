@@ -27,6 +27,12 @@ export default function LoginPage() {
     try {
       await signIn(email, password);
       toast.success('Connexion réussie !');
+      
+      // Attendre un court instant pour que l'auth se propage
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Rafraîchir le router et rediriger
+      router.refresh();
       router.push('/profil');
     } catch (error: any) {
       console.error('Login error:', error);
@@ -37,13 +43,12 @@ export default function LoginPage() {
       } else {
         toast.error('Erreur lors de la connexion');
       }
-    } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-[#F7EDE0]/50 p-4 relative overflow-hidden">
+    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-[#F7EDE0]/50 p-3 sm:p-4 relative overflow-hidden">
       {/* Animated background shapes */}
       <motion.div
         animate={{
@@ -55,7 +60,7 @@ export default function LoginPage() {
           repeat: Infinity,
           ease: "linear"
         }}
-        className="absolute top-10 right-10 w-96 h-96 bg-gradient-to-br from-[#DE3156]/20 to-[#F49928]/20 rounded-full blur-3xl"
+        className="absolute top-10 right-10 w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 bg-gradient-to-br from-[#DE3156]/20 to-[#F49928]/20 rounded-full blur-3xl"
       />
       <motion.div
         animate={{
@@ -67,7 +72,7 @@ export default function LoginPage() {
           repeat: Infinity,
           ease: "linear"
         }}
-        className="absolute bottom-10 left-10 w-96 h-96 bg-gradient-to-br from-[#00A8A8]/20 to-[#00C2CB]/20 rounded-full blur-3xl"
+        className="absolute bottom-10 left-10 w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 bg-gradient-to-br from-[#00A8A8]/20 to-[#00C2CB]/20 rounded-full blur-3xl"
       />
       
       <motion.div
@@ -77,16 +82,16 @@ export default function LoginPage() {
         className="w-full max-w-md relative z-10"
       >
         <Card className="shadow-2xl border-2">
-          <CardHeader className="text-center pb-8">
+          <CardHeader className="text-center pb-6 sm:pb-8">
             <motion.div
               variants={slideInLeft}
               initial="hidden"
               animate="visible"
             >
-              <CardTitle className={`text-5xl font-bold mb-4 ${THEME_CLASSES.textGradient}`}>
+              <CardTitle className={`text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4 ${THEME_CLASSES.textGradient}`}>
                 ✨ Connexion
               </CardTitle>
-              <CardDescription className="text-lg">
+              <CardDescription className="text-base sm:text-lg">
                 Connectez-vous pour accéder à votre compte
               </CardDescription>
             </motion.div>

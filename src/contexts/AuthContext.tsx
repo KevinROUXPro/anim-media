@@ -9,7 +9,7 @@ import {
   signOut as firebaseSignOut,
   updateProfile,
 } from 'firebase/auth';
-import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, Timestamp, collection, getDocs, limit, query } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { User, UserRole, MembershipStatus } from '@/types';
 
@@ -73,9 +73,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Mettre à jour le profil
     await updateProfile(firebaseUser, { displayName: name });
 
-    // Vérifier si c'est le premier utilisateur (admin auto)
-    const usersSnapshot = await getDoc(doc(db, 'metadata', 'stats'));
-    const isFirstUser = !usersSnapshot.exists() || usersSnapshot.data()?.totalUsers === 0;
+    // Vérifier si c'est le premier utilisateur en comptant les documents dans la collection users
+    const usersQuery = query(collection(db, 'users'), limit(1));
+    const usersSnapshot = await getDocs(usersQuery);
+    const isFirstUser = usersSnapshot.empty;
 
     // Créer le document utilisateur dans Firestore
     await setDoc(doc(db, 'users', firebaseUser.uid), {
@@ -87,10 +88,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       membershipStatus: MembershipStatus.NONE,
     });
 
-    // Mettre à jour les stats
-    await setDoc(doc(db, 'metadata', 'stats'), {
-      totalUsers: (usersSnapshot.data()?.totalUsers || 0) + 1,
-    }, { merge: true });
+    // Log pour déboguer
+    console.log('Nouvel utilisateur créé:', {
+      name,
+      email,
+      role: isFirstUser ? 'ADMIN' : 'USER',
+      isFirstUser
+    });
   };
 
   const signOut = async () => {

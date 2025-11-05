@@ -79,11 +79,16 @@ export function Navbar() {
 
           {/* Menu Mobile */}
           <button
-            className="md:hidden"
+            className="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label="Toggle menu"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            <svg className="w-7 h-7 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {isMenuOpen ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              )}
             </svg>
           </button>
         </div>
@@ -93,42 +98,70 @@ export function Navbar() {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="md:hidden py-4 space-y-3"
+            className="md:hidden py-4 space-y-4 border-t border-gray-200"
           >
-            <Link href="/evenements" className={`block text-gray-700 transition-colors ${THEME_CLASSES.linkHover}`}>
-              Événements
+            <Link 
+              href="/evenements" 
+              className={`block text-lg font-medium text-gray-700 transition-colors ${THEME_CLASSES.linkHover} py-2`}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              🎉 Événements
             </Link>
-            <Link href="/ateliers" className={`block text-gray-700 transition-colors ${THEME_CLASSES.linkHover}`}>
-              Ateliers
+            <Link 
+              href="/ateliers" 
+              className={`block text-lg font-medium text-gray-700 transition-colors ${THEME_CLASSES.linkHover} py-2`}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              🎨 Ateliers
             </Link>
-            <Link href="/adhesion" className={`block text-gray-700 transition-colors ${THEME_CLASSES.linkHover}`}>
-              Adhésion
+            <Link 
+              href="/adhesion" 
+              className={`block text-lg font-medium text-gray-700 transition-colors ${THEME_CLASSES.linkHover} py-2`}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              🎫 Adhésion
             </Link>
 
             {user ? (
               <>
-                <Link href="/profil" className={`block text-gray-700 transition-colors ${THEME_CLASSES.linkHover}`}>
-                  Mon Profil
+                <Link 
+                  href="/profil" 
+                  className={`block text-lg font-medium text-gray-700 transition-colors ${THEME_CLASSES.linkHover} py-2`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  👤 Mon Profil
                 </Link>
                 {isAdmin && (
-                  <Link href="/admin" className={`${THEME_CLASSES.textPrimary} font-semibold hover:opacity-80`}>
-                    Administration
+                  <Link 
+                    href="/admin" 
+                    className={`block text-lg font-bold ${THEME_CLASSES.textPrimary} hover:opacity-80 py-2`}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    ⚙️ Administration
                   </Link>
                 )}
-                <Button variant="outline" onClick={signOut} size="sm" className="w-full">
-                  Déconnexion
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    signOut();
+                    setIsMenuOpen(false);
+                  }} 
+                  size="lg" 
+                  className="w-full mt-2 text-base"
+                >
+                  🚪 Déconnexion
                 </Button>
               </>
             ) : (
-              <div className="space-y-2">
-                <Link href="/login" className="block">
-                  <Button variant="outline" size="sm" className="w-full">
-                    Connexion
+              <div className="space-y-3 pt-2">
+                <Link href="/login" className="block" onClick={() => setIsMenuOpen(false)}>
+                  <Button variant="outline" size="lg" className="w-full text-base font-semibold">
+                    🔐 Connexion
                   </Button>
                 </Link>
-                <Link href="/signup" className="block">
-                  <Button size="sm" className={`w-full ${THEME_CLASSES.buttonPrimary}`}>
-                    Inscription
+                <Link href="/signup" className="block" onClick={() => setIsMenuOpen(false)}>
+                  <Button size="lg" className={`w-full ${THEME_CLASSES.buttonPrimary} text-base font-semibold`}>
+                    ✨ Inscription
                   </Button>
                 </Link>
               </div>

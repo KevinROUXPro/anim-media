@@ -28,11 +28,12 @@ export function MembershipButton() {
     <motion.div
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
+      className="w-full"
     >
       <Button
         onClick={handleClick}
         size="lg"
-        className={`${THEME_CLASSES.buttonPrimary} font-bold text-lg shadow-xl hover:shadow-2xl relative overflow-hidden group`}
+        className={`w-full ${THEME_CLASSES.buttonPrimary} font-bold text-base sm:text-lg shadow-xl hover:shadow-2xl relative overflow-hidden group`}
       >
         <motion.div
           className="absolute inset-0 bg-gradient-to-r from-[#F49928] to-[#DE3156] opacity-0 group-hover:opacity-100 transition-opacity duration-300"

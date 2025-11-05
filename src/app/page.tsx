@@ -86,7 +86,7 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className={`relative ${THEME_CLASSES.heroGradient} text-white overflow-hidden min-h-[80vh] flex items-center`}>
+      <section className={`relative ${THEME_CLASSES.heroGradient} text-white overflow-hidden min-h-[60vh] sm:min-h-[70vh] md:min-h-[80vh] flex items-center`}>
         <div className="absolute inset-0 bg-black/20"></div>
         
         {/* Animated background shapes */}
@@ -101,7 +101,7 @@ export default function Home() {
             repeat: Infinity,
             ease: "linear"
           }}
-          className="absolute top-10 left-10 w-72 h-72 bg-white/10 rounded-full blur-3xl"
+          className="absolute top-10 left-10 w-48 h-48 sm:w-64 sm:h-64 md:w-72 md:h-72 bg-white/10 rounded-full blur-3xl"
         />
         <motion.div
           animate={{
@@ -114,7 +114,7 @@ export default function Home() {
             repeat: Infinity,
             ease: "linear"
           }}
-          className="absolute bottom-10 right-10 w-96 h-96 bg-white/10 rounded-full blur-3xl"
+          className="absolute bottom-10 right-10 w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 bg-white/10 rounded-full blur-3xl"
         />
         <motion.div
           animate={{
@@ -131,7 +131,7 @@ export default function Home() {
           className="absolute top-1/2 left-1/3 w-64 h-64 bg-white/10 rounded-full blur-2xl"
         />
         
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32 w-full">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 md:py-24 lg:py-32 w-full">
           <motion.div
             variants={staggerContainer}
             initial="hidden"
@@ -140,7 +140,7 @@ export default function Home() {
           >
             <motion.h1
               variants={bounceIn}
-              className="text-6xl md:text-7xl lg:text-8xl font-bold mb-6"
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold mb-4 sm:mb-6 px-2"
             >
               <motion.span
                 className="inline-block"
@@ -162,15 +162,15 @@ export default function Home() {
             </motion.h1>
             <motion.p
               variants={textReveal}
-              className="text-xl md:text-2xl lg:text-3xl mb-12 max-w-4xl mx-auto font-light"
+              className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl mb-8 sm:mb-12 max-w-4xl mx-auto font-light px-4"
             >
               Découvrez nos activités culturelles : tricot, lecture, écriture, généalogie, informatique et bien plus encore !
             </motion.p>
             <motion.div
               variants={fadeInUp}
-              className="flex flex-col sm:flex-row gap-6 justify-center"
+              className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center px-4"
             >
-              <Link href="/evenements">
+              <Link href="/evenements" className="w-full sm:w-auto">
                 <motion.div 
                   whileHover={{ 
                     scale: 1.1,
@@ -178,13 +178,14 @@ export default function Home() {
                   }} 
                   whileTap={{ scale: 0.95 }}
                   transition={{ duration: 0.3, type: "spring" as const, stiffness: 400 }}
+                  className="w-full sm:w-auto"
                 >
-                  <Button size="lg" variant="secondary" className="text-xl px-10 py-8 font-bold">
+                  <Button size="lg" variant="secondary" className="w-full text-lg sm:text-xl px-8 sm:px-10 py-6 sm:py-8 font-bold">
                     🎉 Voir les Événements
                   </Button>
                 </motion.div>
               </Link>
-              <Link href="/ateliers">
+              <Link href="/ateliers" className="w-full sm:w-auto">
                 <motion.div 
                   whileHover={{ 
                     scale: 1.1,
@@ -192,8 +193,9 @@ export default function Home() {
                   }} 
                   whileTap={{ scale: 0.95 }}
                   transition={{ duration: 0.3, type: "spring" as const, stiffness: 400 }}
+                  className="w-full sm:w-auto"
                 >
-                  <Button size="lg" variant="outline" className="text-xl px-10 py-8 bg-white/10 hover:bg-white/20 border-2 border-white text-white font-bold">
+                  <Button size="lg" variant="outline" className="w-full text-lg sm:text-xl px-8 sm:px-10 py-6 sm:py-8 bg-white/10 hover:bg-white/20 border-2 border-white text-white font-bold">
                     🎨 Découvrir les Ateliers
                   </Button>
                 </motion.div>
@@ -204,16 +206,16 @@ export default function Home() {
       </section>
 
       {/* Prochaines Activités */}
-      <section ref={ref} className="py-20 bg-[#F7EDE0]/30">
+      <section ref={ref} className="py-12 sm:py-16 md:py-20 bg-[#F7EDE0]/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             variants={fadeInUp}
             initial="hidden"
             animate={inView ? "visible" : "hidden"}
-            className="text-center mb-16"
+            className="text-center mb-12 sm:mb-16"
           >
             <motion.h2 
-              className={`text-5xl md:text-6xl font-bold mb-6 ${THEME_CLASSES.textGradient}`}
+              className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 ${THEME_CLASSES.textGradient} px-2`}
               animate={{
                 backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
               }}
@@ -226,7 +228,7 @@ export default function Home() {
               Prochaines Activités
             </motion.h2>
             <motion.p 
-              className="text-gray-700 text-xl font-medium"
+              className="text-gray-700 text-lg sm:text-xl font-medium px-4"
               variants={textReveal}
             >
               ✨ Ne manquez pas nos événements et ateliers à venir !
@@ -252,7 +254,7 @@ export default function Home() {
               {upcomingEvents.length > 0 && (
                 <motion.div variants={staggerItem}>
                   <motion.h3 
-                    className="text-3xl font-bold mb-8 flex items-center gap-3"
+                    className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 flex items-center gap-2 sm:gap-3 px-2"
                     variants={slideInLeft}
                   >
                     <motion.span
@@ -262,14 +264,14 @@ export default function Home() {
                         repeat: Infinity,
                         ease: "easeInOut" as const
                       }}
-                      className="text-5xl"
+                      className="text-4xl sm:text-5xl"
                     >
                       🎉
                     </motion.span>
                     <span className={THEME_CLASSES.textPrimary}>Événements à venir</span>
                   </motion.h3>
                   <motion.div 
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
                     variants={staggerContainer}
                   >
                     {upcomingEvents.map((event, index) => (
@@ -293,7 +295,7 @@ export default function Home() {
               {upcomingWorkshops.length > 0 && (
                 <motion.div variants={staggerItem}>
                   <motion.h3 
-                    className="text-3xl font-bold mb-8 flex items-center gap-3"
+                    className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 flex items-center gap-2 sm:gap-3 px-2"
                     variants={slideInRight}
                   >
                     <motion.span
@@ -306,14 +308,14 @@ export default function Home() {
                         repeat: Infinity,
                         ease: "easeInOut"
                       }}
-                      className="text-5xl"
+                      className="text-4xl sm:text-5xl"
                     >
                       🎨
                     </motion.span>
                     <span className={THEME_CLASSES.textSecondary}>Ateliers à venir</span>
                   </motion.h3>
                   <motion.div 
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
                     variants={staggerContainer}
                   >
                     {upcomingWorkshops.map((workshop, index) => (
@@ -347,7 +349,7 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className={`py-20 ${THEME_CLASSES.headerGradient} text-white relative overflow-hidden`}>
+      <section className={`py-12 sm:py-16 md:py-20 ${THEME_CLASSES.headerGradient} text-white relative overflow-hidden`}>
         {/* Background animated shapes */}
         <motion.div
           animate={{
@@ -359,7 +361,7 @@ export default function Home() {
             repeat: Infinity,
             ease: "linear"
           }}
-          className="absolute top-0 left-0 w-96 h-96 bg-white/10 rounded-full blur-3xl"
+          className="absolute top-0 left-0 w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 bg-white/10 rounded-full blur-3xl"
         />
         <motion.div
           animate={{
@@ -371,7 +373,7 @@ export default function Home() {
             repeat: Infinity,
             ease: "linear"
           }}
-          className="absolute bottom-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl"
+          className="absolute bottom-0 right-0 w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 bg-white/10 rounded-full blur-3xl"
         />
         
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
@@ -382,7 +384,7 @@ export default function Home() {
             transition={{ duration: 0.8, type: "spring", stiffness: 100 }}
           >
             <motion.h2 
-              className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6"
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 px-2"
               animate={{
                 textShadow: [
                   "0 0 20px rgba(255,255,255,0.5)",
@@ -399,7 +401,7 @@ export default function Home() {
               🎊 Rejoignez notre communauté !
             </motion.h2>
             <motion.p 
-              className="text-xl md:text-2xl mb-10 opacity-95 font-light"
+              className="text-lg sm:text-xl md:text-2xl mb-8 sm:mb-10 opacity-95 font-light px-4"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 0.95, y: 0 }}
               viewport={{ once: true }}
@@ -407,7 +409,7 @@ export default function Home() {
             >
               Créez un compte pour vous inscrire à nos activités et ne rien manquer.
             </motion.p>
-            <Link href="/signup">
+            <Link href="/signup" className="block w-full sm:inline-block sm:w-auto">
               <motion.div
                 whileHover={{ 
                   scale: 1.15,
@@ -417,7 +419,7 @@ export default function Home() {
                 whileTap={{ scale: 0.95 }}
                 transition={{ duration: 0.3 }}
               >
-                <Button size="lg" variant="secondary" className="text-xl px-12 py-8 font-bold shadow-2xl">
+                <Button size="lg" variant="secondary" className="w-full text-lg sm:text-xl px-8 sm:px-12 py-6 sm:py-8 font-bold shadow-2xl">
                   ✨ Créer un compte gratuit
                 </Button>
               </motion.div>
@@ -464,9 +466,9 @@ function ActivityCard({ title, description, date, category, location, href, dela
         >
           <Card className={`h-full transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-[#DE3156]/50 ${THEME_CLASSES.cardHover} bg-white/90 backdrop-blur-sm`}>
             <CardHeader>
-              <div className="flex items-center gap-3 mb-3">
+              <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
                 <motion.span 
-                  className="text-4xl"
+                  className="text-3xl sm:text-4xl"
                   animate={{
                     rotate: [0, 10, -10, 0],
                   }}
@@ -478,16 +480,16 @@ function ActivityCard({ title, description, date, category, location, href, dela
                 >
                   {categoryInfo.icon}
                 </motion.span>
-                <span className="text-sm font-semibold text-gray-600 uppercase tracking-wide">{categoryInfo.label}</span>
+                <span className="text-xs sm:text-sm font-semibold text-gray-600 uppercase tracking-wide">{categoryInfo.label}</span>
               </div>
-              <CardTitle className="text-2xl font-bold">{title}</CardTitle>
-              <CardDescription className="text-base">
+              <CardTitle className="text-xl sm:text-2xl font-bold">{title}</CardTitle>
+              <CardDescription className="text-sm sm:text-base">
                 📅 {format(date, "d MMMM yyyy 'à' HH:mm", { locale: fr })}
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-700 mb-4 line-clamp-2 text-base">{description}</p>
-              <p className="text-sm font-medium text-gray-600 flex items-center gap-2">
+              <p className="text-gray-700 mb-3 sm:mb-4 line-clamp-2 text-sm sm:text-base">{description}</p>
+              <p className="text-xs sm:text-sm font-medium text-gray-600 flex items-center gap-2">
                 📍 {location}
               </p>
             </CardContent>
@@ -509,7 +511,7 @@ function MembershipCTA() {
 
   return (
     <motion.section
-      className="py-20 relative overflow-hidden"
+      className="py-12 sm:py-16 md:py-20 relative overflow-hidden"
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       viewport={{ once: true }}
@@ -542,39 +544,39 @@ function MembershipCTA() {
           viewport={{ once: true }}
         >
           <motion.div variants={bounceIn}>
-            <h2 className="text-5xl md:text-6xl font-bold mb-6">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 px-2">
               Rejoignez-nous ! 🎫
             </h2>
           </motion.div>
           
-          <motion.p variants={fadeInUp} className="text-2xl md:text-3xl mb-8 font-light">
+          <motion.p variants={fadeInUp} className="text-xl sm:text-2xl md:text-3xl mb-6 sm:mb-8 font-light px-4">
             Devenez adhérent et profitez d'avantages exclusifs
           </motion.p>
 
           <motion.div 
             variants={fadeInUp}
-            className="bg-white/20 backdrop-blur-md rounded-2xl p-8 mb-8 border-2 border-white/40"
+            className="bg-white/20 backdrop-blur-md rounded-2xl p-6 sm:p-8 mb-6 sm:mb-8 border-2 border-white/40"
           >
-            <div className="grid md:grid-cols-3 gap-6 text-left">
-              <div className="flex items-start gap-3">
-                <span className="text-3xl">🎟️</span>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 text-left">
+              <div className="flex items-start gap-2 sm:gap-3">
+                <span className="text-2xl sm:text-3xl">🎟️</span>
                 <div>
-                  <h3 className="font-bold text-xl mb-1">Accès prioritaire</h3>
-                  <p className="text-white/90">Inscriptions en avant-première</p>
+                  <h3 className="font-bold text-lg sm:text-xl mb-1">Accès prioritaire</h3>
+                  <p className="text-sm sm:text-base text-white/90">Inscriptions en avant-première</p>
                 </div>
               </div>
-              <div className="flex items-start gap-3">
-                <span className="text-3xl">💰</span>
+              <div className="flex items-start gap-2 sm:gap-3">
+                <span className="text-2xl sm:text-3xl">💰</span>
                 <div>
-                  <h3 className="font-bold text-xl mb-1">Tarifs réduits</h3>
-                  <p className="text-white/90">Sur les événements payants</p>
+                  <h3 className="font-bold text-lg sm:text-xl mb-1">Tarifs réduits</h3>
+                  <p className="text-sm sm:text-base text-white/90">Sur les événements payants</p>
                 </div>
               </div>
-              <div className="flex items-start gap-3">
-                <span className="text-3xl">🎁</span>
+              <div className="flex items-start gap-2 sm:gap-3">
+                <span className="text-2xl sm:text-3xl">🎁</span>
                 <div>
-                  <h3 className="font-bold text-xl mb-1">Contenus exclusifs</h3>
-                  <p className="text-white/90">Événements réservés</p>
+                  <h3 className="font-bold text-lg sm:text-xl mb-1">Contenus exclusifs</h3>
+                  <p className="text-sm sm:text-base text-white/90">Événements réservés</p>
                 </div>
               </div>
             </div>
@@ -582,21 +584,21 @@ function MembershipCTA() {
 
           <motion.div
             variants={fadeInUp}
-            className="flex flex-col sm:flex-row gap-6 justify-center items-center"
+            className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center px-4"
           >
             <div className="text-center">
-              <div className="text-6xl font-bold mb-2">15€</div>
-              <div className="text-xl opacity-90">par an</div>
+              <div className="text-5xl sm:text-6xl font-bold mb-2">15€</div>
+              <div className="text-lg sm:text-xl opacity-90">par an</div>
             </div>
             
-            <Link href={user ? "/adhesion" : "/login"}>
+            <Link href={user ? "/adhesion" : "/login"} className="w-full sm:w-auto">
               <motion.div
                 whileHover={{ scale: 1.1, rotate: 2 }}
                 whileTap={{ scale: 0.95 }}
               >
                 <Button 
                   size="lg" 
-                  className="bg-white text-[#DE3156] hover:bg-white/90 text-2xl px-12 py-8 h-auto font-bold shadow-2xl"
+                  className="w-full bg-white text-[#DE3156] hover:bg-white/90 text-xl sm:text-2xl px-8 sm:px-12 py-6 sm:py-8 h-auto font-bold shadow-2xl"
                 >
                   ✨ Adhérer Maintenant
                 </Button>
