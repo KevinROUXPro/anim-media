@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, query, collection, where, getDocs, updateDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Event, CATEGORY_LABELS } from '@/types';
 import { format } from 'date-fns';
@@ -14,35 +14,84 @@ import { Card } from '@/components/ui/card';
 import { RegisterButton } from '@/components/RegisterButton';
 import { THEME_CLASSES } from '@/config/theme';
 import { fadeInUp } from '@/lib/animations';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function EventDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { user } = useAuth();
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchEvent = async () => {
+  const syncParticipantCount = async (eventId: string) => {
+    try {
+      const q = query(
+        collection(db, 'registrations'),
+        where('eventId', '==', eventId)
+      );
+      const snapshot = await getDocs(q);
+      const actualCount = snapshot.size;
+      
+      // Tenter de mettre à jour le compteur dans l'événement (peut échouer si permissions insuffisantes)
       try {
-        const eventDoc = await getDoc(doc(db, 'events', params.id as string));
-        if (eventDoc.exists()) {
-          const data = eventDoc.data();
-          setEvent({
-            id: eventDoc.id,
-            ...data,
-            date: data.date.toDate(),
-            createdAt: data.createdAt?.toDate(),
-          } as Event);
-        }
-      } catch (error) {
-        console.error('Erreur lors du chargement de l\'événement:', error);
-      } finally {
-        setLoading(false);
+        const eventRef = doc(db, 'events', eventId);
+        await updateDoc(eventRef, {
+          currentParticipants: actualCount
+        });
+      } catch (updateError) {
+        console.warn('Cannot update participant count (permissions):', updateError);
+        // Continue sans bloquer - on utilisera le compteur calculé
       }
-    };
+      
+      return actualCount;
+    } catch (error) {
+      console.error('Error syncing participant count:', error);
+      return 0;
+    }
+  };
 
+  const fetchEvent = async () => {
+    try {
+      const eventDoc = await getDoc(doc(db, 'events', params.id as string));
+      if (eventDoc.exists()) {
+        const data = eventDoc.data();
+        
+        let actualParticipants = data.currentParticipants || 0;
+        
+        // Calculer le vrai nombre de participants uniquement si l'utilisateur est connecté
+        if (user) {
+          try {
+            const q = query(
+              collection(db, 'registrations'),
+              where('eventId', '==', params.id as string)
+            );
+            const registrationsSnapshot = await getDocs(q);
+            actualParticipants = registrationsSnapshot.size;
+          } catch (error) {
+            console.warn('Cannot count registrations (not logged in or insufficient permissions)');
+            // Utiliser la valeur du document si on ne peut pas compter
+            actualParticipants = data.currentParticipants || 0;
+          }
+        }
+        
+        setEvent({
+          id: eventDoc.id,
+          ...data,
+          currentParticipants: actualParticipants,
+          date: data.date.toDate(),
+          createdAt: data.createdAt?.toDate(),
+        } as Event);
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement de l\'événement:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchEvent();
-  }, [params.id]);
+  }, [params.id, user?.id]); // Utiliser user.id pour éviter les changements de taille du tableau
 
   if (loading) {
     return (
@@ -89,7 +138,7 @@ export default function EventDetailPage() {
             Retour aux événements
           </Button>
 
-          <Card className="overflow-hidden border-2 shadow-lg">
+          <Card className="overflow-hidden border-2 shadow-lg p-0">
             {event.imageUrl && (
               <div className="w-full h-64 md:h-96 relative">
                 <img
@@ -169,20 +218,20 @@ export default function EventDetailPage() {
               </div>
 
               {/* Informations sur l'inscription */}
-              <div className="mb-8 bg-gradient-to-r from-[#F7EDE0] to-[#F7EDE0]/50 rounded-2xl p-6">
+              <div className="mb-8 bg-gradient-to-r from-[#F7EDE0] to-[#F7EDE0]/50 rounded-2xl p-6 border-2 border-[#DE3156]/20">
                 <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                  {event.requiresRegistration ? '✅' : '🔓'} 
-                  {event.requiresRegistration ? 'Inscription' : 'Accès'}
+                  {event.requiresRegistration ? '📝' : '🔓'} 
+                  {event.requiresRegistration ? 'Modalités d\'inscription' : 'Accès libre'}
                 </h3>
                 
                 {event.requiresRegistration ? (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     <p className="text-gray-700">
-                      <strong>Inscription requise</strong> pour participer à cet événement.
+                      <strong>Inscription obligatoire</strong> pour participer à cet événement.
                     </p>
                     
                     {event.maxParticipants && (
-                      <div className="bg-white rounded-lg p-4">
+                      <div className="bg-white rounded-lg p-4 border border-gray-200">
                         <div className="flex items-center justify-between mb-2">
                           <span className="font-medium text-gray-700">Places disponibles :</span>
                           <span className={`text-xl font-bold ${
@@ -218,10 +267,30 @@ export default function EventDetailPage() {
                       </div>
                     )}
                     
+                    {!isPast && !user && (
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        <p className="text-sm text-blue-800 flex items-start gap-2">
+                          <span className="text-lg">💡</span>
+                          <span>Connectez-vous pour vous inscrire à cet événement</span>
+                        </p>
+                      </div>
+                    )}
+                    
+                    {/* Bouton d'inscription intégré dans la section */}
                     {!isPast && (
-                      <p className="text-sm text-gray-600">
-                        💡 Vous devez être connecté pour vous inscrire.
-                      </p>
+                      <motion.div 
+                        className="pt-4 border-t border-gray-300"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                      >
+                        <RegisterButton
+                          activityId={event.id}
+                          activityType="event"
+                          requiresRegistration={event.requiresRegistration}
+                          onRegistrationChange={fetchEvent}
+                        />
+                      </motion.div>
                     )}
                   </div>
                 ) : (
@@ -235,22 +304,6 @@ export default function EventDetailPage() {
                   </div>
                 )}
               </div>
-
-              {/* Bouton d'inscription */}
-              {!isPast && event.requiresRegistration && (
-                <motion.div 
-                  className="flex justify-center pt-6 border-t"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  <RegisterButton
-                    activityId={event.id}
-                    activityType="event"
-                    requiresRegistration={event.requiresRegistration}
-                  />
-                </motion.div>
-              )}
             </div>
           </Card>
         </motion.div>

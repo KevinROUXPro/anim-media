@@ -27,11 +27,18 @@ function ProfilContent() {
   const { user } = useAuth();
   const [registrations, setRegistrations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Fonction pour forcer le rafraîchissement
+  const refreshRegistrations = () => {
+    setRefreshKey(prev => prev + 1);
+  };
 
   useEffect(() => {
     async function fetchRegistrations() {
       if (!user) return;
 
+      setLoading(true);
       try {
         // Récupérer les inscriptions
         const regsQuery = query(
@@ -87,14 +94,40 @@ function ProfilContent() {
     }
 
     fetchRegistrations();
-  }, [user]);
+  }, [user, refreshKey]); // Ajouter refreshKey comme dépendance
 
-  const upcomingRegistrations = registrations.filter(reg => 
-    reg.activity && new Date(reg.activity.date.toDate()) >= new Date()
-  );
-  const pastRegistrations = registrations.filter(reg => 
-    reg.activity && new Date(reg.activity.date.toDate()) < new Date()
-  );
+  const upcomingRegistrations = registrations.filter(reg => {
+    if (!reg.activity) return false;
+    
+    // Pour les ateliers récurrents, toujours les afficher comme "à venir"
+    if (reg.activityType === 'workshop' && reg.activity.isRecurring) {
+      return true;
+    }
+    
+    // Pour les événements et ateliers ponctuels, vérifier la date
+    if (!reg.activity.date) return false;
+    const activityDate = reg.activity.date.toDate ? reg.activity.date.toDate() : new Date(reg.activity.date);
+    return activityDate >= new Date();
+  });
+  
+  const pastRegistrations = registrations.filter(reg => {
+    if (!reg.activity) return false;
+    
+    // Les ateliers récurrents ne sont jamais dans le passé (sauf si seasonEndDate est passée)
+    if (reg.activityType === 'workshop' && reg.activity.isRecurring) {
+      if (reg.activity.seasonEndDate) {
+        const endDate = reg.activity.seasonEndDate.toDate ? reg.activity.seasonEndDate.toDate() : new Date(reg.activity.seasonEndDate);
+        return endDate < new Date();
+      }
+      return false; // Pas de date de fin, donc toujours actif
+    }
+    
+    // Pour les événements et ateliers ponctuels, vérifier la date
+    if (!reg.activity.date) return false;
+    // Gérer le cas où date est un Timestamp Firebase ou une Date
+    const activityDate = reg.activity.date.toDate ? reg.activity.date.toDate() : new Date(reg.activity.date);
+    return activityDate < new Date();
+  });
 
   return (
     <div className="min-h-screen bg-[#F7EDE0]">
@@ -146,6 +179,20 @@ function ProfilContent() {
       {/* Mes Inscriptions */}
       <section className="py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center mb-8">
+            <h2 className={`text-3xl font-bold ${THEME_CLASSES.textPrimary}`}>
+              📅 Mes Inscriptions
+            </h2>
+            <Button 
+              onClick={refreshRegistrations}
+              variant="outline"
+              className="flex items-center gap-2"
+              disabled={loading}
+            >
+              🔄 Actualiser
+            </Button>
+          </div>
+          
           {loading ? (
             <div className="flex justify-center">
               <motion.div 
@@ -220,45 +267,150 @@ function ActivityRegistrationCard({ registration, past = false }: { registration
   const activity = registration.activity;
   const isPastActivity = past;
   const isEvent = registration.activityType === 'event';
+  const hoverShadowColor = isEvent ? 'rgba(222, 49, 86, 0.3)' : 'rgba(0, 168, 168, 0.3)';
 
   return (
     <motion.div variants={staggerItem}>
-      <Card 
-        className={`${isPastActivity ? 'opacity-60' : ''} border-2 border-transparent hover:border-[${isEvent ? '#DE3156' : '#00A8A8'}] transition-all duration-300 cursor-pointer overflow-hidden`}
-      >
+      <Link href={`/${isEvent ? 'evenements' : 'ateliers'}/${activity.id}`}>
         <motion.div
-          whileHover={{ scale: 1.05, y: -10, rotateZ: 2 }}
-          transition={{ type: "spring", stiffness: 300 }}
+          whileHover={{ 
+            scale: 1.05, 
+            y: -10,
+            rotateZ: 2,
+            boxShadow: isPastActivity ? undefined : `0 20px 40px ${hoverShadowColor}`
+          }}
+          whileTap={{ scale: 0.98 }}
+          transition={{ 
+            duration: 0.3,
+            type: "spring",
+            stiffness: 300
+          }}
         >
-          <CardHeader className={isEvent ? THEME_CLASSES.sectionEvents : THEME_CLASSES.sectionWorkshops}>
-            <CardTitle className="text-2xl text-white">
-              <motion.span
-                whileHover={{ scale: 1.2, rotate: 15 }}
-                className="inline-block"
-              >
-                {isEvent ? '🎉' : '🎨'}
-              </motion.span>{' '}
-              {activity.title}
-            </CardTitle>
-            <CardDescription className="text-white/90 text-base">
-              {format(activity.date.toDate(), "d MMMM yyyy 'à' HH:mm", { locale: fr })}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <p className="text-base text-gray-700 mb-2">📍 {activity.location}</p>
-            {!isEvent && (
-              <p className="text-base text-gray-600">👤 {activity.instructor}</p>
-            )}
-            {!isPastActivity && (
-              <div className="mt-4">
-                <span className="inline-block px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
-                  ✅ Inscrit
-                </span>
-              </div>
-            )}
-          </CardContent>
+          <motion.div
+            animate={{
+              y: isPastActivity ? 0 : [0, -5, 0]
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          >
+            <Card className={`h-full transition-all duration-300 cursor-pointer border-2 border-transparent ${isPastActivity ? 'opacity-60' : 'hover:border-[#DE3156]/50'} bg-white/90 backdrop-blur-sm overflow-hidden relative group p-0`}>
+              {/* Effet de brillance au survol */}
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                initial={{ x: '-100%' }}
+                whileHover={{ x: '100%' }}
+                transition={{ duration: 0.6 }}
+              />
+              
+              {activity.imageUrl && (
+                <div className="relative h-48 w-full overflow-hidden">
+                  <motion.img
+                    src={activity.imageUrl}
+                    alt={activity.title}
+                    className="w-full h-full object-cover"
+                    whileHover={{ scale: 1.1 }}
+                    transition={{ duration: 0.3 }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                  <div className="absolute bottom-2 left-2 flex items-center gap-2">
+                    <motion.span 
+                      className="text-2xl"
+                      animate={{
+                        rotate: [0, 10, -10, 0],
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                    >
+                      {isEvent ? '🎉' : '🎨'}
+                    </motion.span>
+                  </div>
+                </div>
+              )}
+              
+              <CardHeader className={`${isEvent ? THEME_CLASSES.sectionEvents : THEME_CLASSES.sectionWorkshops} ${activity.imageUrl ? 'pt-6' : ''}`}>
+                {!activity.imageUrl && (
+                  <motion.div 
+                    className="flex items-center gap-3 mb-3"
+                    animate={{
+                      rotate: [0, 10, -10, 0],
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  >
+                    <span className="text-3xl">{isEvent ? '🎉' : '🎨'}</span>
+                  </motion.div>
+                )}
+                <CardTitle className="text-xl sm:text-2xl text-white font-bold">
+                  {activity.title}
+                </CardTitle>
+                <CardDescription className="text-white/90 text-sm sm:text-base">
+                  {activity.isRecurring ? (
+                    <>
+                      � {activity.recurrenceDays?.map((day: number) => 
+                        ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'][day]
+                      ).join(', ')} {activity.startTime}-{activity.endTime}
+                    </>
+                  ) : activity.date ? (
+                    <>
+                      📅 {format(activity.date.toDate ? activity.date.toDate() : new Date(activity.date), "d MMMM yyyy 'à' HH:mm", { locale: fr })}
+                    </>
+                  ) : (
+                    'Dates à définir'
+                  )}
+                </CardDescription>
+              </CardHeader>
+              
+              <CardContent className="pb-6">
+                <div className="space-y-2 sm:space-y-3">
+                  <p className="text-sm sm:text-base text-gray-700 flex items-center gap-2">
+                    📍 {activity.location}
+                  </p>
+                  {!isEvent && activity.instructor && (
+                    <p className="text-sm sm:text-base text-gray-600 flex items-center gap-2">
+                      👤 {activity.instructor}
+                    </p>
+                  )}
+                  {!isEvent && activity.level && (
+                    <p className="text-xs sm:text-sm text-gray-500 flex items-center gap-2">
+                      📊 Niveau: {activity.level}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-2 mt-3 sm:mt-4 flex-wrap">
+                    {!isPastActivity && (
+                      <motion.span 
+                        className="inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 bg-green-100 text-green-700 rounded-full text-xs sm:text-sm font-semibold"
+                        animate={{ scale: [1, 1.05, 1] }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                      >
+                        ✅ Inscrit
+                      </motion.span>
+                    )}
+                    {isPastActivity && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 bg-gray-100 text-gray-600 rounded-full text-xs sm:text-sm font-semibold">
+                        ⏰ Terminé
+                      </span>
+                    )}
+                    {activity.isRecurring && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 sm:px-3 sm:py-1.5 bg-blue-100 text-blue-700 rounded-full text-xs sm:text-sm font-semibold">
+                        ♻️ Récurrent
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
         </motion.div>
-      </Card>
+      </Link>
     </motion.div>
   );
 }

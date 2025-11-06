@@ -62,6 +62,7 @@ export default function Home() {
           orderBy('createdAt', 'desc')
         );
         const workshopsSnapshot = await getDocs(workshopsQuery);
+        
         const allWorkshops = workshopsSnapshot.docs.map(doc => {
           const data = doc.data();
           return {
@@ -142,7 +143,7 @@ export default function Home() {
       <section className={`relative ${THEME_CLASSES.heroGradient} text-white overflow-hidden min-h-[60vh] sm:min-h-[70vh] md:min-h-[80vh] flex items-center`}>
         <div className="absolute inset-0 bg-black/20"></div>
         
-        {/* Animated background shapes */}
+        {/* Animated background shapes with parallax effect */}
         <motion.div
           animate={{
             scale: [1, 1.3, 1],
@@ -154,35 +155,83 @@ export default function Home() {
             repeat: Infinity,
             ease: "linear"
           }}
-          className="absolute top-10 left-10 w-48 h-48 sm:w-64 sm:h-64 md:w-72 md:h-72 bg-white/10 rounded-full blur-3xl"
+          style={{
+            position: 'absolute',
+            top: '10%',
+            left: '10%',
+            width: '12rem',
+            height: '12rem'
+          }}
+          className="bg-white/10 rounded-full blur-3xl sm:w-64 sm:h-64 md:w-72 md:h-72"
         />
         <motion.div
           animate={{
             scale: [1, 1.4, 1],
             rotate: [360, 180, 0],
-            opacity: [0.3, 0.6, 0.3]
+            opacity: [0.3, 0.6, 0.3],
+            x: [0, 50, 0],
+            y: [0, -30, 0]
           }}
           transition={{
             duration: 25,
             repeat: Infinity,
             ease: "linear"
           }}
-          className="absolute bottom-10 right-10 w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 bg-white/10 rounded-full blur-3xl"
+          style={{
+            position: 'absolute',
+            bottom: '10%',
+            right: '10%',
+            width: '16rem',
+            height: '16rem'
+          }}
+          className="bg-white/10 rounded-full blur-3xl sm:w-80 sm:h-80 md:w-96 md:h-96"
         />
         <motion.div
           animate={{
             scale: [1, 1.2, 1],
             x: [0, 100, 0],
             y: [0, -50, 0],
-            opacity: [0.2, 0.4, 0.2]
+            opacity: [0.2, 0.4, 0.2],
+            rotate: [0, 90, 0]
           }}
           transition={{
             duration: 15,
             repeat: Infinity,
             ease: "easeInOut"
           }}
-          className="absolute top-1/2 left-1/3 w-64 h-64 bg-white/10 rounded-full blur-2xl"
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '33.33%',
+            width: '16rem',
+            height: '16rem'
+          }}
+          className="bg-white/10 rounded-full blur-2xl"
         />
+        
+        {/* Floating particles */}
+        {[...Array(8)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-2 h-2 bg-white/30 rounded-full"
+            animate={{
+              y: [0, -100, 0],
+              x: [0, (i % 2 === 0 ? 25 : -25), 0],
+              opacity: [0, 1, 0],
+              scale: [0, 1, 0]
+            }}
+            transition={{
+              duration: 5 + (i * 0.5),
+              repeat: Infinity,
+              delay: i * 0.5,
+              ease: "easeInOut"
+            }}
+            style={{
+              left: `${10 + i * 10}%`,
+              top: `${30 + (i * 5) % 40}%`
+            }}
+          />
+        ))}
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 md:py-24 lg:py-32 w-full">
           <motion.div
@@ -258,109 +307,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Section À propos */}
-      <section className="py-12 sm:py-16 md:py-20 bg-white">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="text-center mb-12"
-          >
-            <h2 className={`text-3xl sm:text-4xl md:text-5xl font-bold mb-6 ${THEME_CLASSES.textGradient}`}>
-              À propos d'Anim'Média
-            </h2>
-            <div className="h-1 w-24 bg-gradient-to-r from-[#DE3156] to-[#F49928] mx-auto rounded-full mb-8"></div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="grid md:grid-cols-2 gap-8 items-center mb-12"
-          >
-            <div className="space-y-6 text-lg text-gray-700">
-              <p className="leading-relaxed">
-                <strong className={THEME_CLASSES.textPrimary}>Anim'Média</strong> est une association dynamique dédiée à la promotion des activités culturelles et créatives pour tous les âges.
-              </p>
-              <p className="leading-relaxed">
-                Notre mission est de créer un espace de partage, d'apprentissage et de convivialité à travers des ateliers réguliers et des événements ponctuels variés.
-              </p>
-              <p className="leading-relaxed">
-                Du <strong>tricot</strong> à l'<strong>informatique</strong>, de la <strong>lecture</strong> à la <strong>généalogie</strong>, nous proposons des activités pour tous les goûts et tous les niveaux !
-              </p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <motion.div
-                whileHover={{ scale: 1.05, y: -5 }}
-                className="bg-gradient-to-br from-[#DE3156]/10 to-[#DE3156]/5 p-6 rounded-2xl border-2 border-[#DE3156]/20"
-              >
-                <div className="text-4xl mb-3">🎨</div>
-                <div className="text-2xl font-bold text-[#DE3156] mb-1">10+</div>
-                <div className="text-sm text-gray-600">Ateliers réguliers</div>
-              </motion.div>
-
-              <motion.div
-                whileHover={{ scale: 1.05, y: -5 }}
-                className="bg-gradient-to-br from-[#F49928]/10 to-[#F49928]/5 p-6 rounded-2xl border-2 border-[#F49928]/20"
-              >
-                <div className="text-4xl mb-3">🎭</div>
-                <div className="text-2xl font-bold text-[#F49928] mb-1">20+</div>
-                <div className="text-sm text-gray-600">Événements par an</div>
-              </motion.div>
-
-              <motion.div
-                whileHover={{ scale: 1.05, y: -5 }}
-                className="bg-gradient-to-br from-[#00A8A8]/10 to-[#00A8A8]/5 p-6 rounded-2xl border-2 border-[#00A8A8]/20"
-              >
-                <div className="text-4xl mb-3">👥</div>
-                <div className="text-2xl font-bold text-[#00A8A8] mb-1">100+</div>
-                <div className="text-sm text-gray-600">Membres actifs</div>
-              </motion.div>
-
-              <motion.div
-                whileHover={{ scale: 1.05, y: -5 }}
-                className="bg-gradient-to-br from-purple-500/10 to-purple-500/5 p-6 rounded-2xl border-2 border-purple-500/20"
-              >
-                <div className="text-4xl mb-3">❤️</div>
-                <div className="text-2xl font-bold text-purple-600 mb-1">100%</div>
-                <div className="text-sm text-gray-600">Passion</div>
-              </motion.div>
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="bg-gradient-to-r from-[#F7EDE0] to-[#F7EDE0]/50 rounded-3xl p-8 text-center"
-          >
-            <h3 className="text-2xl font-bold mb-4 text-gray-800">Nos Valeurs</h3>
-            <div className="grid sm:grid-cols-3 gap-6 text-center">
-              <div>
-                <div className="text-3xl mb-2">🤝</div>
-                <h4 className="font-semibold text-lg mb-2">Partage</h4>
-                <p className="text-gray-600 text-sm">Créer du lien social et favoriser les échanges</p>
-              </div>
-              <div>
-                <div className="text-3xl mb-2">🌟</div>
-                <h4 className="font-semibold text-lg mb-2">Créativité</h4>
-                <p className="text-gray-600 text-sm">Encourager l'expression artistique et culturelle</p>
-              </div>
-              <div>
-                <div className="text-3xl mb-2">📚</div>
-                <h4 className="font-semibold text-lg mb-2">Apprentissage</h4>
-                <p className="text-gray-600 text-sm">Transmettre des savoir-faire et des connaissances</p>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
       {/* Prochaines Activités */}
       <section ref={ref} className="py-12 sm:py-16 md:py-20 bg-[#F7EDE0]/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -400,18 +346,15 @@ export default function Home() {
               <div className={`rounded-full h-16 w-16 border-4 border-t-transparent ${THEME_CLASSES.borderPrimary}`}></div>
             </motion.div>
           ) : (
-            <motion.div 
-              className="space-y-16"
-              variants={staggerContainer}
-              initial="hidden"
-              animate={inView ? "visible" : "hidden"}
-            >
+            <div className="space-y-16">
               {/* Événements */}
               {upcomingEvents.length > 0 && (
-                <motion.div variants={staggerItem}>
+                <div>
                   <motion.h3 
                     className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 flex items-center gap-2 sm:gap-3 px-2"
-                    variants={slideInLeft}
+                    initial={{ opacity: 0, x: -50 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.6 }}
                   >
                     <motion.span
                       animate={{ y: [-10, 10, -10] }}
@@ -426,10 +369,7 @@ export default function Home() {
                     </motion.span>
                     <span className={THEME_CLASSES.textPrimary}>Événements à venir</span>
                   </motion.h3>
-                  <motion.div 
-                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
-                    variants={staggerContainer}
-                  >
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
                     {upcomingEvents.map((event, index) => (
                       <ActivityCard
                         key={event.id}
@@ -438,21 +378,24 @@ export default function Home() {
                         date={event.date}
                         category={event.category}
                         location={event.location}
+                        imageUrl={event.imageUrl}
                         href={`/evenements/${event.id}`}
                         delay={index * 0.1}
                         inView={inView}
                       />
                     ))}
-                  </motion.div>
-                </motion.div>
+                  </div>
+                </div>
               )}
 
               {/* Ateliers */}
               {upcomingWorkshops.length > 0 && (
-                <motion.div variants={staggerItem}>
+                <div>
                   <motion.h3 
                     className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 flex items-center gap-2 sm:gap-3 px-2"
-                    variants={slideInRight}
+                    initial={{ opacity: 0, x: 50 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.6 }}
                   >
                     <motion.span
                       animate={{ 
@@ -470,10 +413,7 @@ export default function Home() {
                     </motion.span>
                     <span className={THEME_CLASSES.textSecondary}>Ateliers à venir</span>
                   </motion.h3>
-                  <motion.div 
-                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
-                    variants={staggerContainer}
-                  >
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
                     {upcomingWorkshops.map((workshop, index) => (
                       <WorkshopCard
                         key={workshop.id}
@@ -482,116 +422,197 @@ export default function Home() {
                         inView={inView}
                       />
                     ))}
-                  </motion.div>
-                </motion.div>
+                  </div>
+                </div>
               )}
 
               {upcomingEvents.length === 0 && upcomingWorkshops.length === 0 && (
-                <motion.p 
-                  className="text-center text-gray-500 text-xl"
-                  variants={fadeInUp}
-                >
+                <p className="text-center text-gray-500 text-xl">
                   Aucune activité prévue pour le moment. Revenez bientôt !
-                </motion.p>
+                </p>
               )}
-            </motion.div>
+            </div>
           )}
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className={`py-12 sm:py-16 md:py-20 ${THEME_CLASSES.headerGradient} text-white relative overflow-hidden`}>
-        {/* Background animated shapes */}
-        <motion.div
-          animate={{
-            scale: [1, 1.2, 1],
-            rotate: [0, 180, 360],
-          }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            ease: "linear"
-          }}
-          className="absolute top-0 left-0 w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 bg-white/10 rounded-full blur-3xl"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.3, 1],
-            rotate: [360, 180, 0],
-          }}
-          transition={{
-            duration: 25,
-            repeat: Infinity,
-            ease: "linear"
-          }}
-          className="absolute bottom-0 right-0 w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 bg-white/10 rounded-full blur-3xl"
-        />
-        
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8, y: 50 }}
-            whileInView={{ opacity: 1, scale: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, type: "spring", stiffness: 100 }}
-          >
-            <motion.h2 
-              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 px-2"
-              animate={{
-                textShadow: [
-                  "0 0 20px rgba(255,255,255,0.5)",
-                  "0 0 30px rgba(255,255,255,0.8)",
-                  "0 0 20px rgba(255,255,255,0.5)"
-                ],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-            >
-              🎊 Rejoignez notre communauté !
-            </motion.h2>
-            <motion.p 
-              className="text-lg sm:text-xl md:text-2xl mb-8 sm:mb-10 opacity-95 font-light px-4"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 0.95, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.3, duration: 0.8 }}
-            >
-              Créez un compte pour vous inscrire à nos activités et ne rien manquer.
-            </motion.p>
-            <Link href="/signup" className="block w-full sm:inline-block sm:w-auto">
-              <motion.div
-                whileHover={{ 
-                  scale: 1.15,
-                  rotate: [0, -2, 2, 0],
-                  boxShadow: "0 30px 60px rgba(0,0,0,0.3)"
-                }}
-                whileTap={{ scale: 0.95 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Button size="lg" variant="secondary" className="w-full text-lg sm:text-xl px-8 sm:px-12 py-6 sm:py-8 font-bold shadow-2xl">
-                  ✨ Créer un compte gratuit
-                </Button>
-              </motion.div>
-            </Link>
-          </motion.div>
         </div>
       </section>
 
       {/* Section adhésion */}
       <MembershipCTA />
+
+      {/* Section À propos */}
+      <section className="py-12 sm:py-16 md:py-20 bg-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="text-center mb-12"
+          >
+            <h2 className={`text-3xl sm:text-4xl md:text-5xl font-bold mb-6 ${THEME_CLASSES.textGradient}`}>
+              À propos d'Anim'Média
+            </h2>
+            <div className="h-1 w-24 bg-gradient-to-r from-[#DE3156] to-[#F49928] mx-auto rounded-full mb-8"></div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="grid md:grid-cols-2 gap-8 items-center mb-12"
+          >
+            <div className="space-y-6 text-lg text-gray-700">
+              <p className="leading-relaxed">
+                <strong className={THEME_CLASSES.textPrimary}>Anim'Média</strong> est une association dynamique dédiée à la promotion des activités culturelles et créatives pour tous les âges.
+              </p>
+              <p className="leading-relaxed">
+                Notre mission est de créer un espace de partage, d'apprentissage et de convivialité à travers des ateliers réguliers et des événements ponctuels variés.
+              </p>
+              <p className="leading-relaxed">
+                Du <strong>tricot</strong> à l'<strong>informatique</strong>, de la <strong>lecture</strong> à la <strong>généalogie</strong>, nous proposons des activités pour tous les goûts et tous les niveaux !
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              {[
+                { icon: '🎨', color: '#DE3156', value: '10+', label: 'Ateliers réguliers', delay: 0 },
+                { icon: '🎭', color: '#F49928', value: '20+', label: 'Événements par an', delay: 0.1 },
+                { icon: '👥', color: '#00A8A8', value: '100+', label: 'Membres actifs', delay: 0.2 },
+                { icon: '❤️', color: '#9333EA', value: '100%', label: 'Passion', delay: 0.3 }
+              ].map((stat, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ 
+                    duration: 0.5, 
+                    delay: stat.delay,
+                    type: "spring",
+                    stiffness: 200
+                  }}
+                  whileHover={{ 
+                    scale: 1.1, 
+                    y: -10,
+                    rotate: [0, -5, 5, 0],
+                    transition: { duration: 0.3 }
+                  }}
+                  className="bg-gradient-to-br p-6 rounded-2xl border-2 cursor-pointer"
+                  style={{
+                    backgroundImage: `linear-gradient(to bottom right, ${stat.color}10, ${stat.color}05)`,
+                    borderColor: `${stat.color}20`
+                  }}
+                >
+                  <motion.div 
+                    className="text-4xl mb-3"
+                    animate={{
+                      rotate: [0, 10, -10, 0],
+                      scale: [1, 1.1, 1]
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                      delay: index * 0.2
+                    }}
+                  >
+                    {stat.icon}
+                  </motion.div>
+                  <div className="text-2xl font-bold mb-1" style={{ color: stat.color }}>
+                    {stat.value}
+                  </div>
+                  <div className="text-sm text-gray-600">{stat.label}</div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="bg-gradient-to-r from-[#F7EDE0] to-[#F7EDE0]/50 rounded-3xl p-8 text-center relative overflow-hidden"
+          >
+            {/* Effet de particules en arrière-plan */}
+            {[...Array(5)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute w-20 h-20 rounded-full bg-gradient-to-br from-[#DE3156]/10 to-[#F49928]/10 blur-2xl"
+                animate={{
+                  x: [0, (i % 2 === 0 ? 50 : -50), 0],
+                  y: [0, (i % 3 === 0 ? 50 : -50), 0],
+                  scale: [1, 1.2, 1],
+                  opacity: [0.3, 0.6, 0.3]
+                }}
+                transition={{
+                  duration: 5 + (i * 0.6),
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: i * 0.5
+                }}
+                style={{
+                  left: `${20 * i}%`,
+                  top: `${30 + (i * 8) % 40}%`
+                }}
+              />
+            ))}
+            
+            <h3 className="text-2xl font-bold mb-8 text-gray-800 relative z-10">Nos Valeurs</h3>
+            <div className="grid sm:grid-cols-3 gap-6 text-center relative z-10">
+              {[
+                { icon: '🤝', title: 'Partage', desc: 'Créer du lien social et favoriser les échanges', delay: 0.1 },
+                { icon: '🌟', title: 'Créativité', desc: 'Encourager l\'expression artistique et culturelle', delay: 0.2 },
+                { icon: '📚', title: 'Apprentissage', desc: 'Transmettre des savoir-faire et des connaissances', delay: 0.3 }
+              ].map((value, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: 0.4 + value.delay }}
+                  whileHover={{ 
+                    scale: 1.1,
+                    y: -10,
+                    transition: { duration: 0.2 }
+                  }}
+                >
+                  <motion.div 
+                    className="text-5xl mb-3"
+                    animate={{
+                      rotate: [0, 10, -10, 0],
+                      scale: [1, 1.15, 1]
+                    }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                      delay: index * 0.3
+                    }}
+                  >
+                    {value.icon}
+                  </motion.div>
+                  <h4 className="font-semibold text-lg mb-2">{value.title}</h4>
+                  <p className="text-gray-600 text-sm">{value.desc}</p>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </section>
     </div>
   );
 }
 
-function ActivityCard({ title, description, date, category, location, href, delay, inView }: {
+function ActivityCard({ title, description, date, category, location, href, imageUrl, delay, inView }: {
   title: string;
   description: string;
   date: Date;
   category: ActivityCategory;
   location: string;
   href: string;
+  imageUrl?: string;
   delay: number;
   inView: boolean;
 }) {
@@ -608,7 +629,8 @@ function ActivityCard({ title, description, date, category, location, href, dela
           whileHover={{ 
             scale: 1.05, 
             y: -10,
-            rotateZ: 2
+            rotateZ: 2,
+            boxShadow: "0 20px 40px rgba(222, 49, 86, 0.3)"
           }}
           whileTap={{ scale: 0.98 }}
           transition={{ 
@@ -617,36 +639,85 @@ function ActivityCard({ title, description, date, category, location, href, dela
             stiffness: 300
           }}
         >
-          <Card className={`h-full transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-[#DE3156]/50 ${THEME_CLASSES.cardHover} bg-white/90 backdrop-blur-sm`}>
-            <CardHeader>
-              <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
-                <motion.span 
-                  className="text-3xl sm:text-4xl"
-                  animate={{
-                    rotate: [0, 10, -10, 0],
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                >
-                  {categoryInfo.icon}
-                </motion.span>
-                <span className="text-xs sm:text-sm font-semibold text-gray-600 uppercase tracking-wide">{categoryInfo.label}</span>
+          <motion.div
+            animate={{
+              y: [0, -5, 0]
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: delay
+            }}
+          >
+            <Card className={`h-full transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-[#DE3156]/50 ${THEME_CLASSES.cardHover} bg-white/90 backdrop-blur-sm overflow-hidden relative group p-0`}>
+              {/* Effet de brillance au survol */}
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                initial={{ x: '-100%' }}
+                whileHover={{ x: '100%' }}
+                transition={{ duration: 0.6 }}
+              />
+            {imageUrl && (
+              <div className="relative h-48 w-full overflow-hidden">
+                <motion.img
+                  src={imageUrl}
+                  alt={title}
+                  className="w-full h-full object-cover"
+                  whileHover={{ scale: 1.1 }}
+                  transition={{ duration: 0.3 }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                <div className="absolute bottom-2 left-2 right-2 flex items-center gap-2">
+                  <motion.span 
+                    className="text-2xl"
+                    animate={{
+                      rotate: [0, 10, -10, 0],
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  >
+                    {categoryInfo.icon}
+                  </motion.span>
+                  <span className="text-xs font-semibold text-white uppercase tracking-wide drop-shadow-lg">{categoryInfo.label}</span>
+                </div>
               </div>
+            )}
+            <CardHeader className={imageUrl ? "pt-6" : ""}>
+              {!imageUrl && (
+                <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                  <motion.span 
+                    className="text-3xl sm:text-4xl"
+                    animate={{
+                      rotate: [0, 10, -10, 0],
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  >
+                    {categoryInfo.icon}
+                  </motion.span>
+                  <span className="text-xs sm:text-sm font-semibold text-gray-600 uppercase tracking-wide">{categoryInfo.label}</span>
+                </div>
+              )}
               <CardTitle className="text-xl sm:text-2xl font-bold">{title}</CardTitle>
               <CardDescription className="text-sm sm:text-base">
                 📅 {format(date, "d MMMM yyyy 'à' HH:mm", { locale: fr })}
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pb-6">
               <p className="text-gray-700 mb-3 sm:mb-4 line-clamp-2 text-sm sm:text-base">{description}</p>
               <p className="text-xs sm:text-sm font-medium text-gray-600 flex items-center gap-2">
                 📍 {location}
               </p>
             </CardContent>
           </Card>
+          </motion.div>
         </motion.div>
       </Link>
     </motion.div>
@@ -687,14 +758,15 @@ function WorkshopCard({ workshop, delay, inView }: {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: delay }}
+      transition={{ duration: 0.5, delay: delay }}
     >
       <Link href={`/ateliers/${workshop.id}`}>
         <motion.div
           whileHover={{ 
             scale: 1.05, 
             y: -10,
-            rotateZ: 2
+            rotateZ: 2,
+            boxShadow: "0 20px 40px rgba(0, 168, 168, 0.3)"
           }}
           whileTap={{ scale: 0.98 }}
           transition={{ 
@@ -703,24 +775,72 @@ function WorkshopCard({ workshop, delay, inView }: {
             stiffness: 300
           }}
         >
-          <Card className={`h-full transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-[#DE3156]/50 ${THEME_CLASSES.cardHover} bg-white/90 backdrop-blur-sm`}>
-            <CardHeader>
-              <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
-                <motion.span 
-                  className="text-3xl sm:text-4xl"
-                  animate={{
-                    rotate: [0, 10, -10, 0],
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                >
-                  {categoryInfo.icon}
-                </motion.span>
-                <span className="text-xs sm:text-sm font-semibold text-gray-600 uppercase tracking-wide">{categoryInfo.label}</span>
+          <motion.div
+            animate={{
+              y: [0, -5, 0]
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: delay
+            }}
+          >
+            <Card className={`h-full transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-[#DE3156]/50 ${THEME_CLASSES.cardHover} bg-white/90 backdrop-blur-sm overflow-hidden relative group p-0`}>
+              {/* Effet de brillance au survol */}
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                initial={{ x: '-100%' }}
+                whileHover={{ x: '100%' }}
+                transition={{ duration: 0.6 }}
+              />
+            {workshop.imageUrl && (
+              <div className="relative h-48 w-full overflow-hidden">
+                <motion.img
+                  src={workshop.imageUrl}
+                  alt={workshop.title}
+                  className="w-full h-full object-cover"
+                  whileHover={{ scale: 1.1 }}
+                  transition={{ duration: 0.3 }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                <div className="absolute bottom-2 left-2 right-2 flex items-center gap-2">
+                  <motion.span 
+                    className="text-2xl"
+                    animate={{
+                      rotate: [0, 10, -10, 0],
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  >
+                    {categoryInfo.icon}
+                  </motion.span>
+                  <span className="text-xs font-semibold text-white uppercase tracking-wide drop-shadow-lg">{categoryInfo.label}</span>
+                </div>
               </div>
+            )}
+            <CardHeader className={workshop.imageUrl ? "pt-6" : ""}>
+              {!workshop.imageUrl && (
+                <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
+                  <motion.span 
+                    className="text-3xl sm:text-4xl"
+                    animate={{
+                      rotate: [0, 10, -10, 0],
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  >
+                    {categoryInfo.icon}
+                  </motion.span>
+                  <span className="text-xs sm:text-sm font-semibold text-gray-600 uppercase tracking-wide">{categoryInfo.label}</span>
+                </div>
+              )}
               <CardTitle className="text-xl sm:text-2xl font-bold">{workshop.title}</CardTitle>
               <CardDescription className="text-sm sm:text-base">
                 {scheduleText}
@@ -731,13 +851,14 @@ function WorkshopCard({ workshop, delay, inView }: {
                 </CardDescription>
               )}
             </CardHeader>
-            <CardContent>
+            <CardContent className="pb-6">
               <p className="text-gray-700 mb-3 sm:mb-4 line-clamp-2 text-sm sm:text-base">{workshop.description}</p>
               <p className="text-xs sm:text-sm font-medium text-gray-600 flex items-center gap-2">
                 📍 {workshop.location}
               </p>
             </CardContent>
           </Card>
+          </motion.div>
         </motion.div>
       </Link>
     </motion.div>

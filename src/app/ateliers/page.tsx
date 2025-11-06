@@ -261,17 +261,29 @@ function WorkshopCard({ workshop, index }: { workshop: Workshop; index: number }
             stiffness: 300
           }}
         >
-          <Card className={`h-full transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-[#00A8A8]/50 ${THEME_CLASSES.cardHover} bg-white/90 backdrop-blur-sm`}>
+          <Card className={`h-full transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-[#00A8A8]/50 ${THEME_CLASSES.cardHover} bg-white/90 backdrop-blur-sm overflow-hidden p-0`}>
             {workshop.imageUrl && (
-              <div className="h-48 w-full relative overflow-hidden rounded-t-lg">
+              <div className="h-48 w-full relative overflow-hidden">
                 <img
                   src={workshop.imageUrl}
                   alt={workshop.title}
                   className="w-full h-full object-cover"
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                {/* Badge inscription sur l'image */}
+                {workshop.requiresRegistration && (
+                  <div className="absolute top-2 right-2 bg-[#00A8A8] text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg flex items-center gap-1">
+                    ✅ Inscription requise
+                  </div>
+                )}
+                {!workshop.requiresRegistration && (
+                  <div className="absolute top-2 right-2 bg-gray-700 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg flex items-center gap-1">
+                    🔓 Accès libre
+                  </div>
+                )}
               </div>
             )}
-            <CardHeader>
+            <CardHeader className={workshop.imageUrl ? "pt-6" : ""}>
               <div className="flex items-center gap-3 mb-3">
                 <motion.span 
                   className="text-4xl"
@@ -313,7 +325,7 @@ function WorkshopCard({ workshop, index }: { workshop: Workshop; index: number }
                 )}
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pb-6">
               <p className="text-gray-700 mb-4 line-clamp-2 text-base">{workshop.description}</p>
               <div className="space-y-2">
                 {workshop.instructor && (
@@ -338,32 +350,33 @@ function WorkshopCard({ workshop, index }: { workshop: Workshop; index: number }
                 </div>
                 
                 <div className="mt-3 space-y-2">
-                  {workshop.requiresRegistration ? (
-                    <>
-                      <div className="inline-block bg-red-100 text-red-700 px-3 py-2 rounded-full text-sm font-semibold">
-                        ✅ Inscription requise
-                      </div>
-                      {workshop.maxParticipants && (
-                        <div className="flex items-center gap-2 text-sm mt-2">
-                          <span className="font-medium text-gray-700">Places :</span>
-                          <span className={`font-bold ${
-                            (workshop.currentParticipants || 0) >= workshop.maxParticipants 
-                              ? 'text-red-600' 
-                              : (workshop.currentParticipants || 0) >= workshop.maxParticipants * 0.8 
-                                ? 'text-orange-600' 
-                                : 'text-green-600'
-                          }`}>
-                            {workshop.currentParticipants || 0}/{workshop.maxParticipants}
-                          </span>
-                          {(workshop.currentParticipants || 0) >= workshop.maxParticipants && (
-                            <span className="text-red-600 font-semibold">Complet</span>
-                          )}
-                        </div>
-                      )}
-                    </>
-                  ) : (
+                  {/* Badge uniquement si pas d'image (sinon il est sur l'image) */}
+                  {!workshop.imageUrl && workshop.requiresRegistration && (
+                    <div className="inline-block bg-[#00A8A8] bg-opacity-10 text-[#00A8A8] px-3 py-2 rounded-full text-sm font-semibold">
+                      ✅ Inscription requise
+                    </div>
+                  )}
+                  {!workshop.imageUrl && !workshop.requiresRegistration && (
                     <div className="inline-block bg-gray-100 text-gray-700 px-3 py-2 rounded-full text-sm font-semibold">
                       🔓 Accès libre
+                    </div>
+                  )}
+                  {/* Compteur de participants */}
+                  {workshop.requiresRegistration && workshop.maxParticipants && (
+                    <div className="flex items-center gap-2 text-sm mt-2">
+                      <span className="font-medium text-gray-700">Places :</span>
+                      <span className={`font-bold ${
+                        (workshop.currentParticipants || 0) >= workshop.maxParticipants 
+                          ? 'text-red-600' 
+                          : (workshop.currentParticipants || 0) >= workshop.maxParticipants * 0.8 
+                            ? 'text-orange-600' 
+                            : 'text-green-600'
+                      }`}>
+                        {workshop.currentParticipants || 0}/{workshop.maxParticipants}
+                      </span>
+                      {(workshop.currentParticipants || 0) >= workshop.maxParticipants && (
+                        <span className="text-red-600 font-semibold">Complet</span>
+                      )}
                     </div>
                   )}
                 </div>
