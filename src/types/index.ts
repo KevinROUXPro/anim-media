@@ -134,6 +134,29 @@ export interface Registration {
   createdAt: Date;
 }
 
+export interface AGReport {
+  id: string;
+  title: string;
+  description: string;
+  date: Date;
+  pdfUrl: string;
+  fileName: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Suggestion {
+  id: string;
+  userId: string;
+  userName: string;
+  title: string;
+  description: string;
+  category: ActivityCategory;
+  likes: string[]; // Array of user IDs who liked
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 // Types pour Firestore (avec timestamps Firestore)
 export interface UserDoc extends Omit<User, 'createdAt' | 'membershipExpiry' | 'membershipStartDate'> {
   createdAt: any; // Firestore Timestamp
@@ -167,4 +190,15 @@ export interface WorkshopDoc extends Omit<Workshop, 'seasonStartDate' | 'seasonE
 
 export interface RegistrationDoc extends Omit<Registration, 'createdAt'> {
   createdAt: any;
+}
+
+export interface AGReportDoc extends Omit<AGReport, 'date' | 'createdAt' | 'updatedAt'> {
+  date: any;
+  createdAt: any;
+  updatedAt: any;
+}
+
+export interface SuggestionDoc extends Omit<Suggestion, 'createdAt' | 'updatedAt'> {
+  createdAt: any;
+  updatedAt: any;
 }

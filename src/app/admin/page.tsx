@@ -234,6 +234,24 @@ function AdminContent() {
                       </Card>
                     </Link>
                   </motion.div>
+
+                  <motion.div variants={staggerItem}>
+                    <Link href="/admin/documents">
+                      <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full border-2 border-transparent hover:border-purple-500">
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2 text-xl">
+                            📄 Gérer les Documents
+                          </CardTitle>
+                          <CardDescription className="text-base">
+                            Comptes rendus d'Assemblée Générale
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <Button className="w-full" size="lg">Accéder</Button>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  </motion.div>
                 </motion.div>
               </motion.div>
             </motion.div>

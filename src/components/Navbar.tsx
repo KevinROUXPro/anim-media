@@ -43,6 +43,9 @@ export function Navbar() {
             <Link href="/ateliers" className={`text-xl font-semibold text-gray-700 transition-colors ${THEME_CLASSES.linkHover}`}>
               Ateliers
             </Link>
+            <Link href="/vos-idees" className={`text-xl font-semibold text-gray-700 transition-colors ${THEME_CLASSES.linkHover}`}>
+              Vos Idées
+            </Link>
             <Link href="/adhesion" className={`text-xl font-semibold text-gray-700 transition-colors ${THEME_CLASSES.linkHover}`}>
               Adhésion
             </Link>
@@ -52,6 +55,11 @@ export function Navbar() {
                 <Link href="/profil" className={`text-xl font-semibold text-gray-700 transition-colors ${THEME_CLASSES.linkHover}`}>
                   Mon Profil
                 </Link>
+                {user.membershipStatus === 'ACTIVE' && (
+                  <Link href="/vie-associative" className={`text-xl font-semibold text-gray-700 transition-colors ${THEME_CLASSES.linkHover}`}>
+                    Vie Associative
+                  </Link>
+                )}
                 {isAdmin && (
                   <Link href="/admin" className={`text-xl ${THEME_CLASSES.textPrimary} font-bold hover:opacity-80 transition-colors`}>
                     Administration
@@ -115,6 +123,13 @@ export function Navbar() {
               🎨 Ateliers
             </Link>
             <Link 
+              href="/vos-idees" 
+              className={`block text-lg font-medium text-gray-700 transition-colors ${THEME_CLASSES.linkHover} py-2`}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              💡 Vos Idées
+            </Link>
+            <Link 
               href="/adhesion" 
               className={`block text-lg font-medium text-gray-700 transition-colors ${THEME_CLASSES.linkHover} py-2`}
               onClick={() => setIsMenuOpen(false)}
@@ -131,6 +146,15 @@ export function Navbar() {
                 >
                   👤 Mon Profil
                 </Link>
+                {user.membershipStatus === 'ACTIVE' && (
+                  <Link 
+                    href="/vie-associative" 
+                    className={`block text-lg font-medium text-gray-700 transition-colors ${THEME_CLASSES.linkHover} py-2`}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    📄 Vie Associative
+                  </Link>
+                )}
                 {isAdmin && (
                   <Link 
                     href="/admin" 

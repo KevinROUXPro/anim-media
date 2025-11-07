@@ -118,63 +118,99 @@ vercel rm [deployment-url]
 ## ⚠️ Points d'attention
 
 ### Firestore Rules
-Assurez-vous que vos règles Firestore sont configurées pour la production :
+Assurez-vous que vos règles Firestore sont configurées pour la production.
+
+**Fichier disponible :** `firestore.rules` à la racine du projet
 
 ```javascript
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Fonction helper pour vérifier si l'utilisateur est admin
+    function isAdmin() {
+      return request.auth != null && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADMIN';
+    }
+    
+    // Fonction helper pour vérifier si l'utilisateur est adhérent actif
+    function isActiveMember() {
+      return request.auth != null && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.membershipStatus == 'ACTIVE';
+    }
+    
     // Utilisateurs
     match /users/{userId} {
       allow read: if request.auth != null;
-      allow write: if request.auth.uid == userId || 
-                     get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADMIN';
+      allow write: if request.auth.uid == userId || isAdmin();
     }
     
-    // Ateliers et événements (lecture publique)
+    // Ateliers (lecture publique)
     match /workshops/{workshopId} {
       allow read: if true;
-      allow write: if request.auth != null && 
-                     get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADMIN';
+      allow write: if isAdmin();
     }
     
+    // Événements (lecture publique)
     match /events/{eventId} {
       allow read: if true;
-      allow write: if request.auth != null && 
-                     get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADMIN';
+      allow write: if isAdmin();
     }
     
     // Inscriptions
     match /registrations/{registrationId} {
       allow read: if request.auth != null && 
-                    (resource.data.userId == request.auth.uid || 
-                     get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADMIN');
-      allow create: if request.auth != null;
+                    (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
       allow delete: if request.auth != null && 
-                      (resource.data.userId == request.auth.uid || 
-                       get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADMIN');
+                      (resource.data.userId == request.auth.uid || isAdmin());
+    }
+    
+    // Suggestions
+    match /suggestions/{suggestionId} {
+      allow read: if true;  // Lecture publique
+      allow create: if isActiveMember() && request.resource.data.userId == request.auth.uid;
+      allow update: if request.auth != null && 
+                      (resource.data.userId == request.auth.uid || isAdmin());
+      allow delete: if request.auth != null && 
+                      (resource.data.userId == request.auth.uid || isAdmin());
+    }
+    
+    // Comptes rendus d'AG
+    match /agReports/{reportId} {
+      allow read: if isActiveMember();  // Lecture pour adhérents actifs uniquement
+      allow write: if isAdmin();
     }
   }
 }
 ```
 
 ### Storage Rules
-Pour Firebase Storage (si vous utilisez l'upload d'images) :
+Pour Firebase Storage (si vous utilisez l'upload d'images).
+
+**Fichier disponible :** `storage.rules` à la racine du projet
 
 ```javascript
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
+    function isAdmin() {
+      return request.auth != null && 
+             firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'ADMIN';
+    }
+    
     match /workshops/{imageId} {
       allow read: if true;
-      allow write: if request.auth != null && 
-                     get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADMIN';
+      allow write: if isAdmin();
     }
     
     match /events/{imageId} {
       allow read: if true;
-      allow write: if request.auth != null && 
-                     get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADMIN';
+      allow write: if isAdmin();
+    }
+    
+    match /ag-reports/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
   }
 }

@@ -1,0 +1,71 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Fonction helper pour vérifier si l'utilisateur est admin
+    function isAdmin() {
+      return request.auth != null && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADMIN';
+    }
+    
+    // Fonction helper pour vérifier si l'utilisateur est adhérent actif
+    function isActiveMember() {
+      return request.auth != null && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.membershipStatus == 'ACTIVE';
+    }
+    
+    // Utilisateurs
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth.uid == userId || isAdmin();
+    }
+    
+    // Ateliers (lecture publique)
+    match /workshops/{workshopId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // Événements (lecture publique)
+    match /events/{eventId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // Inscriptions
+    match /registrations/{registrationId} {
+      allow read: if request.auth != null && 
+                    (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow delete: if request.auth != null && 
+                      (resource.data.userId == request.auth.uid || isAdmin());
+    }
+    
+    // Suggestions - NOUVEAU
+    match /suggestions/{suggestionId} {
+      // Lecture publique pour tous
+      allow read: if true;
+      
+      // Création uniquement pour les adhérents actifs
+      allow create: if isActiveMember() && 
+                      request.resource.data.userId == request.auth.uid;
+      
+      // Mise à jour uniquement pour les likes (via arrayUnion/arrayRemove)
+      // Ou pour l'auteur ou un admin
+      allow update: if request.auth != null && 
+                      (resource.data.userId == request.auth.uid || isAdmin());
+      
+      // Suppression uniquement pour l'auteur ou un admin
+      allow delete: if request.auth != null && 
+                      (resource.data.userId == request.auth.uid || isAdmin());
+    }
+    
+    // Comptes rendus d'AG - NOUVEAU
+    match /agReports/{reportId} {
+      // Lecture uniquement pour les adhérents actifs
+      allow read: if isActiveMember();
+      
+      // Écriture uniquement pour les admins
+      allow write: if isAdmin();
+    }
+  }
+}

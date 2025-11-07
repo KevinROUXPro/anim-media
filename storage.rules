@@ -1,0 +1,31 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Fonction helper pour vérifier si l'utilisateur est admin
+    function isAdmin() {
+      return request.auth != null && 
+             firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'ADMIN';
+    }
+    
+    // Images des ateliers
+    match /workshops/{imageId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // Images des événements
+    match /events/{imageId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    
+    // PDFs des comptes rendus d'AG - NOUVEAU
+    match /ag-reports/{allPaths=**} {
+      // Lecture publique (les adhérents vérifiés côté Firestore)
+      allow read: if true;
+      
+      // Écriture uniquement pour les admins
+      allow write: if isAdmin();
+    }
+  }
+}
