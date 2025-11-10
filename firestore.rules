@@ -15,7 +15,10 @@ service cloud.firestore {
     
     // Utilisateurs
     match /users/{userId} {
-      allow read: if request.auth != null;
+      // Lecture uniquement pour l'utilisateur lui-même ou les admins (sécurité RGPD)
+      allow read: if request.auth != null && 
+                    (request.auth.uid == userId || isAdmin());
+      // Écriture uniquement pour l'utilisateur lui-même ou les admins
       allow write: if request.auth.uid == userId || isAdmin();
     }
     

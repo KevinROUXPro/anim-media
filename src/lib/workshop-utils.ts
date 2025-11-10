@@ -47,11 +47,18 @@ export const RECURRENCE_INTERVAL_LABELS: Record<number, string> = {
 function isDateCancelled(date: Date, cancellationPeriods?: CancellationPeriod[]): boolean {
   if (!cancellationPeriods || cancellationPeriods.length === 0) return false;
   
-  const dateTime = date.getTime();
+  // Normaliser la date à vérifier (début de journée pour comparaison)
+  const checkDate = startOfDay(date);
+  const checkTime = checkDate.getTime();
+  
   return cancellationPeriods.some(period => {
-    const startTime = period.startDate.getTime();
-    const endTime = period.endDate.getTime();
-    return dateTime >= startTime && dateTime <= endTime;
+    // Normaliser les dates de début et fin de période (début et fin de journée)
+    const startTime = startOfDay(period.startDate).getTime();
+    const endDate = new Date(period.endDate);
+    endDate.setHours(23, 59, 59, 999); // Fin de journée
+    const endTime = endDate.getTime();
+    
+    return checkTime >= startTime && checkTime <= endTime;
   });
 }
 

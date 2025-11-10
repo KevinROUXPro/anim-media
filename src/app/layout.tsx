@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 import { Toaster } from "@/components/ui/sonner";
 import { AutoLogout } from "@/components/AutoLogout";
 import { ScrollToTop } from "@/components/ScrollToTop";
@@ -30,6 +31,7 @@ export default function RootLayout({
           <Navbar />
           <AutoLogout inactivityTimeout={30 * 60 * 1000} />
           <main>{children}</main>
+          <Footer />
           <Toaster />
         </AuthProvider>
       </body>

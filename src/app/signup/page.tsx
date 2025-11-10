@@ -18,6 +18,7 @@ export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { signUp } = useAuth();
@@ -26,6 +27,11 @@ export default function SignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(''); // Réinitialiser l'erreur
+
+    if (!acceptedPrivacy) {
+      setError('Vous devez accepter la politique de confidentialité pour créer un compte');
+      return;
+    }
 
     if (password !== confirmPassword) {
       setError('Les mots de passe ne correspondent pas');
@@ -164,6 +170,30 @@ export default function SignupPage() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                 />
+              </div>
+
+              {/* Consentement RGPD */}
+              <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    id="privacy"
+                    checked={acceptedPrivacy}
+                    onChange={(e) => setAcceptedPrivacy(e.target.checked)}
+                    className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
+                  />
+                  <label htmlFor="privacy" className="text-sm text-gray-700 cursor-pointer">
+                    J'accepte la{' '}
+                    <Link 
+                      href="/politique-confidentialite" 
+                      target="_blank"
+                      className="text-blue-600 hover:underline font-semibold"
+                    >
+                      politique de confidentialité
+                    </Link>
+                    {' '}et consens au traitement de mes données personnelles conformément au RGPD.
+                  </label>
+                </div>
               </div>
 
               {/* Message d'erreur */}

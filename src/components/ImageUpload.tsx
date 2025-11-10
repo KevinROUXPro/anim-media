@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Upload, X, Image as ImageIcon } from 'lucide-react';
+import Image from 'next/image';
 
 interface ImageUploadProps {
   currentImageUrl?: string;
@@ -91,10 +92,12 @@ export function ImageUpload({
       {preview ? (
         <div className="relative">
           <div className="relative w-full h-64 rounded-lg overflow-hidden border-2 border-gray-200">
-            <img
+            <Image
               src={preview}
               alt="Preview"
-              className="w-full h-full object-cover"
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 800px"
             />
           </div>
           <Button

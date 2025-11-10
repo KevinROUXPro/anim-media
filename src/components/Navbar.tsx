@@ -52,14 +52,14 @@ export function Navbar() {
 
             {user ? (
               <>
-                <Link href="/profil" className={`text-xl font-semibold text-gray-700 transition-colors ${THEME_CLASSES.linkHover}`}>
-                  Mon Profil
-                </Link>
                 {user.membershipStatus === 'ACTIVE' && (
                   <Link href="/vie-associative" className={`text-xl font-semibold text-gray-700 transition-colors ${THEME_CLASSES.linkHover}`}>
                     Vie Associative
                   </Link>
                 )}
+                <Link href="/profil" className={`text-xl font-semibold text-gray-700 transition-colors ${THEME_CLASSES.linkHover}`}>
+                  Mon Profil
+                </Link>
                 {isAdmin && (
                   <Link href="/admin" className={`text-xl ${THEME_CLASSES.textPrimary} font-bold hover:opacity-80 transition-colors`}>
                     Administration

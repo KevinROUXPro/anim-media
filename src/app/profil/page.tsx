@@ -3,8 +3,9 @@
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useState } from 'react';
-import { collection, query, where, getDocs, orderBy, Timestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { collection, query, where, getDocs, orderBy, Timestamp, doc, deleteDoc } from 'firebase/firestore';
+import { db, auth } from '@/lib/firebase';
+import { deleteUser } from 'firebase/auth';
 import { Event, Workshop, Registration, MembershipStatus, MEMBERSHIP_LABELS } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,9 @@ import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { Trash2, AlertTriangle } from 'lucide-react';
 import { THEME_CLASSES } from '@/config/theme';
 import { fadeInUp, staggerContainer, staggerItem, bounceIn, pulseAnimation } from '@/lib/animations';
 
@@ -24,14 +28,65 @@ export default function ProfilPage() {
 }
 
 function ProfilContent() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
+  const router = useRouter();
   const [registrations, setRegistrations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   // Fonction pour forcer le rafraîchissement
   const refreshRegistrations = () => {
     setRefreshKey(prev => prev + 1);
+  };
+
+  // Fonction pour supprimer le compte
+  const handleDeleteAccount = async () => {
+    if (!user || !auth.currentUser) return;
+    
+    setDeleting(true);
+    try {
+      // 1. Supprimer toutes les inscriptions
+      const regsQuery = query(
+        collection(db, 'registrations'),
+        where('userId', '==', user.id)
+      );
+      const regsSnapshot = await getDocs(regsQuery);
+      await Promise.all(regsSnapshot.docs.map(doc => deleteDoc(doc.ref)));
+
+      // 2. Supprimer les suggestions de l'utilisateur
+      const suggestionsQuery = query(
+        collection(db, 'suggestions'),
+        where('userId', '==', user.id)
+      );
+      const suggestionsSnapshot = await getDocs(suggestionsQuery);
+      await Promise.all(suggestionsSnapshot.docs.map(doc => deleteDoc(doc.ref)));
+
+      // 3. Supprimer le document utilisateur dans Firestore
+      await deleteDoc(doc(db, 'users', user.id));
+
+      // 4. Supprimer le compte Firebase Auth
+      await deleteUser(auth.currentUser);
+
+      toast.success('Votre compte a été supprimé avec succès');
+      
+      // 5. Rediriger vers la page d'accueil
+      router.push('/');
+    } catch (error: any) {
+      console.error('Erreur lors de la suppression du compte:', error);
+      
+      if (error.code === 'auth/requires-recent-login') {
+        toast.error('Pour des raisons de sécurité, veuillez vous reconnecter avant de supprimer votre compte');
+        await signOut();
+        router.push('/login?action=delete-account');
+      } else {
+        toast.error('Erreur lors de la suppression du compte. Veuillez réessayer.');
+      }
+    } finally {
+      setDeleting(false);
+      setShowDeleteConfirm(false);
+    }
   };
 
   useEffect(() => {
@@ -257,6 +312,91 @@ function ProfilContent() {
               )}
             </motion.div>
           )}
+        </div>
+      </section>
+
+      {/* Section Suppression de compte */}
+      <section className="py-12 bg-gray-100">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Card className="border-2 border-red-200">
+            <CardHeader>
+              <CardTitle className="text-2xl flex items-center gap-2 text-red-600">
+                <Trash2 className="h-6 w-6" />
+                Zone Dangereuse
+              </CardTitle>
+              <CardDescription>
+                Actions irréversibles sur votre compte
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <h4 className="font-semibold text-red-800 mb-2">Supprimer mon compte</h4>
+                    <p className="text-sm text-red-700 mb-3">
+                      Cette action est <strong>irréversible</strong>. Toutes vos données seront définitivement supprimées :
+                    </p>
+                    <ul className="text-sm text-red-700 space-y-1 ml-4 list-disc">
+                      <li>Votre compte et vos informations personnelles</li>
+                      <li>Vos inscriptions aux activités</li>
+                      <li>Vos suggestions et commentaires</li>
+                      <li>Votre adhésion si vous êtes membre</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {!showDeleteConfirm ? (
+                <Button
+                  variant="destructive"
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="w-full"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Supprimer mon compte
+                </Button>
+              ) : (
+                <div className="space-y-3 bg-red-100 p-4 rounded-lg border-2 border-red-300">
+                  <p className="font-semibold text-red-900 text-center">
+                    ⚠️ Êtes-vous absolument sûr(e) ?
+                  </p>
+                  <p className="text-sm text-red-800 text-center">
+                    Cette action ne peut pas être annulée. Cliquez sur "Confirmer la suppression" pour supprimer définitivement votre compte.
+                  </p>
+                  <div className="flex gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowDeleteConfirm(false)}
+                      className="flex-1"
+                      disabled={deleting}
+                    >
+                      Annuler
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={handleDeleteAccount}
+                      className="flex-1"
+                      disabled={deleting}
+                    >
+                      {deleting ? (
+                        <>⏳ Suppression...</>
+                      ) : (
+                        <>
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Confirmer la suppression
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              <p className="text-xs text-gray-500 text-center">
+                Conformément au RGPD (Article 17), vous avez le droit de demander l'effacement de vos données personnelles.
+              </p>
+            </CardContent>
+          </Card>
         </div>
       </section>
     </div>

@@ -8,6 +8,7 @@ import { Workshop, CATEGORY_LABELS, LEVEL_LABELS } from '@/types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import { Calendar, Clock, MapPin, Users, ArrowLeft, Award, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -213,10 +214,13 @@ export default function WorkshopDetailPage() {
           <Card className="overflow-hidden border-2 p-0">
             {workshop.imageUrl && (
               <div className="w-full h-64 md:h-96 relative">
-                <img
+                <Image
                   src={workshop.imageUrl}
                   alt={workshop.title}
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 1200px"
+                  priority
                 />
               </div>
             )}
@@ -258,11 +262,17 @@ export default function WorkshopDetailPage() {
                     <div>
                       <p className="font-semibold text-orange-900 mb-2">Périodes d'interruption</p>
                       <ul className="space-y-1">
-                        {workshop.cancellationPeriods.map((period, idx) => (
-                          <li key={idx} className="text-orange-800">
-                            • Du {format(period.startDate, "d MMMM", { locale: fr })} au {format(period.endDate, "d MMMM yyyy", { locale: fr })} : {period.reason}
-                          </li>
-                        ))}
+                        {workshop.cancellationPeriods.map((period, idx) => {
+                          const isSameDay = period.startDate.getTime() === period.endDate.getTime();
+                          return (
+                            <li key={idx} className="text-orange-800">
+                              • {isSameDay 
+                                  ? `Le ${format(period.startDate, "d MMMM yyyy", { locale: fr })}`
+                                  : `Du ${format(period.startDate, "d MMMM", { locale: fr })} au ${format(period.endDate, "d MMMM yyyy", { locale: fr })}`
+                                } : {period.reason}
+                            </li>
+                          );
+                        })}
                       </ul>
                     </div>
                   </div>

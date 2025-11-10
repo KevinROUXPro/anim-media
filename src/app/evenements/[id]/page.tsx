@@ -8,6 +8,7 @@ import { Event, CATEGORY_LABELS } from '@/types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import { Calendar, Clock, MapPin, Users, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -141,10 +142,13 @@ export default function EventDetailPage() {
           <Card className="overflow-hidden border-2 shadow-lg p-0">
             {event.imageUrl && (
               <div className="w-full h-64 md:h-96 relative">
-                <img
+                <Image
                   src={event.imageUrl}
                   alt={event.title}
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 1200px"
+                  priority
                 />
               </div>
             )}

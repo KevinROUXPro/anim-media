@@ -7,6 +7,7 @@ import { Workshop, ActivityCategory, CATEGORY_LABELS, LEVEL_LABELS } from '@/typ
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
@@ -264,10 +265,12 @@ function WorkshopCard({ workshop, index }: { workshop: Workshop; index: number }
           <Card className={`h-full transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-[#00A8A8]/50 ${THEME_CLASSES.cardHover} bg-white/90 backdrop-blur-sm overflow-hidden p-0`}>
             {workshop.imageUrl && (
               <div className="h-48 w-full relative overflow-hidden">
-                <img
+                <Image
                   src={workshop.imageUrl}
                   alt={workshop.title}
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
                 {/* Badge inscription sur l'image */}

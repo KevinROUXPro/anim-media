@@ -7,6 +7,7 @@ import { Event, ActivityCategory, CATEGORY_LABELS } from '@/types';
 import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
@@ -212,10 +213,12 @@ function EventCard({ event, index, inView }: { event: Event; index: number; inVi
           <Card className={`h-full transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-[#DE3156]/50 ${THEME_CLASSES.cardHover} bg-white/90 backdrop-blur-sm overflow-hidden p-0`}>
             {event.imageUrl && (
               <div className="h-48 w-full relative overflow-hidden">
-                <img
+                <Image
                   src={event.imageUrl}
                   alt={event.title}
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
                 {/* Badge inscription sur l'image */}
