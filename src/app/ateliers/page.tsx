@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { collection, query, orderBy, getDocs } from 'firebase/firestore';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { collection, query, orderBy, getDocs, where, limit as firestoreLimit } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Workshop, ActivityCategory, CATEGORY_LABELS, LEVEL_LABELS } from '@/types';
 import { motion } from 'framer-motion';
@@ -15,6 +15,8 @@ import { fr } from 'date-fns/locale';
 import { THEME_CLASSES } from '@/config/theme';
 import { fadeInUp, staggerContainer, staggerItem, bounceIn } from '@/lib/animations';
 import { formatWorkshopSchedule, getNextSession } from '@/lib/workshop-utils';
+import { cache, CacheKeys } from '@/lib/cache';
+import { EventCardSkeleton } from '@/components/ui/loading-skeleton';
 
 export default function WorkshopsPage() {
   const [workshops, setWorkshops] = useState<Workshop[]>([]);
@@ -23,80 +25,107 @@ export default function WorkshopsPage() {
   const [loading, setLoading] = useState(true);
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 });
 
-  useEffect(() => {
-    async function fetchWorkshops() {
-      try {
-        const workshopsQuery = query(
+  // Fonction pour récupérer les ateliers avec cache
+  const fetchWorkshops = useCallback(async (category?: ActivityCategory | 'ALL') => {
+    const cacheKey = CacheKeys.workshops(category === 'ALL' ? undefined : category);
+    
+    // Vérifier le cache
+    const cached = cache.get<Workshop[]>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    try {
+      // Construire la requête avec filtre côté Firestore si une catégorie est sélectionnée
+      let workshopsQuery = query(
+        collection(db, 'workshops'),
+        orderBy('createdAt', 'desc'),
+        firestoreLimit(50) // Limiter à 50 ateliers initialement
+      );
+
+      // Filtrer par catégorie côté Firestore si nécessaire
+      if (category && category !== 'ALL') {
+        workshopsQuery = query(
           collection(db, 'workshops'),
-          orderBy('createdAt', 'desc')
+          where('category', '==', category),
+          orderBy('createdAt', 'desc'),
+          firestoreLimit(50)
         );
-        const snapshot = await getDocs(workshopsQuery);
-        const workshopsData = snapshot.docs.map(doc => {
-          const data = doc.data();
-          return {
-            ...data,
-            id: doc.id,
-            isRecurring: data.isRecurring || false,
-            recurrenceDays: data.recurrenceDays || [],
-            recurrenceInterval: data.recurrenceInterval || 1,
-            startTime: data.startTime || '14:00',
-            endTime: data.endTime || '16:00',
-            seasonStartDate: data.seasonStartDate?.toDate(),
-            seasonEndDate: data.seasonEndDate?.toDate(),
-            cancellationPeriods: data.cancellationPeriods?.map((p: any) => ({
-              startDate: p.startDate.toDate(),
-              endDate: p.endDate.toDate(),
-              reason: p.reason
-            })),
-            createdAt: data.createdAt.toDate(),
-            updatedAt: data.updatedAt.toDate(),
-            // Anciens champs pour rétrocompatibilité
-            date: data.date?.toDate(),
-          };
-        }) as Workshop[];
+      }
+
+      const snapshot = await getDocs(workshopsQuery);
+      const workshopsData = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          ...data,
+          id: doc.id,
+          isRecurring: data.isRecurring || false,
+          recurrenceDays: data.recurrenceDays || [],
+          recurrenceInterval: data.recurrenceInterval || 1,
+          startTime: data.startTime || '14:00',
+          endTime: data.endTime || '16:00',
+          seasonStartDate: data.seasonStartDate?.toDate(),
+          seasonEndDate: data.seasonEndDate?.toDate(),
+          cancellationPeriods: data.cancellationPeriods?.map((p: any) => ({
+            startDate: p.startDate.toDate(),
+            endDate: p.endDate.toDate(),
+            reason: p.reason
+          })),
+          createdAt: data.createdAt.toDate(),
+          updatedAt: data.updatedAt.toDate(),
+          date: data.date?.toDate(),
+        };
+      }) as Workshop[];
+      
+      // Filtrer les ateliers dont la saison est terminée
+      const activeWorkshops = workshopsData.filter(w => {
+        if (w.isRecurring) {
+          const nextSession = getNextSession(
+            w.recurrenceDays || [],
+            w.recurrenceInterval || 1,
+            w.seasonStartDate,
+            w.seasonEndDate,
+            w.startTime || '14:00',
+            w.cancellationPeriods
+          );
+          return nextSession !== null || !w.seasonEndDate;
+        }
         
-        // Filtrer les ateliers dont la saison est terminée
-        const activeWorkshops = workshopsData.filter(w => {
-          // Si l'atelier est récurrent, vérifier s'il a une prochaine séance
-          if (w.isRecurring) {
-            const nextSession = getNextSession(
-              w.recurrenceDays || [],
-              w.recurrenceInterval || 1,
-              w.seasonStartDate,
-              w.seasonEndDate,
-              w.startTime || '14:00',
-              w.cancellationPeriods
-            );
-            // Afficher l'atelier s'il a une prochaine séance OU si aucune date de fin n'est définie
-            return nextSession !== null || !w.seasonEndDate;
-          }
-          
-          // Pour les ateliers ponctuels (ancienne structure ou non-récurrents)
-          // Afficher si pas de seasonEndDate OU si elle n'est pas encore passée
-          if (w.seasonEndDate && w.seasonEndDate < new Date()) return false;
-          
-          return true;
-        });
-        
-        setWorkshops(activeWorkshops);
-        setFilteredWorkshops(activeWorkshops);
+        if (w.seasonEndDate && w.seasonEndDate < new Date()) return false;
+        return true;
+      });
+      
+      // Mettre en cache (TTL de 5 minutes)
+      cache.set(cacheKey, activeWorkshops, 5 * 60 * 1000);
+      
+      return activeWorkshops;
+    } catch (error) {
+      console.error('Error fetching workshops:', error);
+      throw error;
+    }
+  }, []);
+
+  useEffect(() => {
+    async function loadWorkshops() {
+      setLoading(true);
+      try {
+        const data = await fetchWorkshops(selectedCategory);
+        setWorkshops(data);
+        setFilteredWorkshops(data);
       } catch (error) {
-        console.error('Error fetching workshops:', error);
+        console.error('Error loading workshops:', error);
       } finally {
         setLoading(false);
       }
     }
 
-    fetchWorkshops();
-  }, []);
+    loadWorkshops();
+  }, [selectedCategory, fetchWorkshops]);
 
-  useEffect(() => {
-    if (selectedCategory === 'ALL') {
-      setFilteredWorkshops(workshops);
-    } else {
-      setFilteredWorkshops(workshops.filter(workshop => workshop.category === selectedCategory));
-    }
-  }, [selectedCategory, workshops]);
+  // Mémoriser les ateliers filtrés
+  const memoizedFilteredWorkshops = useMemo(() => {
+    return filteredWorkshops;
+  }, [filteredWorkshops]);
 
   return (
     <div className="min-h-screen bg-[#F7EDE0]/30">
@@ -189,58 +218,89 @@ export default function WorkshopsPage() {
       <section ref={ref} className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <EventCardSkeleton key={i} />
+              ))}
+            </div>
+          ) : memoizedFilteredWorkshops.length > 0 ? (
             <motion.div 
-              className="flex justify-center"
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+              variants={staggerContainer}
+              initial="hidden"
+              animate="visible"
             >
-              <div className={`rounded-full h-16 w-16 border-4 border-t-transparent ${THEME_CLASSES.borderPrimary}`}></div>
+              {memoizedFilteredWorkshops.map((workshop, index) => (
+                <WorkshopCard key={workshop.id} workshop={workshop} index={index} />
+              ))}
             </motion.div>
-          ) : (() => {
-            return filteredWorkshops.length > 0 ? (
-              <motion.div 
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-                variants={staggerContainer}
-                initial="hidden"
-                animate="visible"
-              >
-                {filteredWorkshops.map((workshop, index) => (
-                  <WorkshopCard key={workshop.id} workshop={workshop} index={index} />
-                ))}
-              </motion.div>
-            ) : (
-              <motion.div 
-                className="text-center py-16"
-                variants={fadeInUp}
-                initial="hidden"
-                animate="visible"
-              >
-                <p className="text-gray-600 text-xl font-medium">
-                  Aucun atelier trouvé dans cette catégorie.
-                </p>
-              </motion.div>
-            );
-          })()}
+          ) : (
+            <motion.div 
+              className="text-center py-16"
+              variants={fadeInUp}
+              initial="hidden"
+              animate="visible"
+            >
+              <p className="text-gray-600 text-xl font-medium">
+                Aucun atelier trouvé dans cette catégorie.
+              </p>
+            </motion.div>
+          )}
         </div>
       </section>
     </div>
   );
 }
 
-function WorkshopCard({ workshop, index }: { workshop: Workshop; index: number }) {
+// Memoization du composant WorkshopCard
+const WorkshopCard = React.memo(({ workshop, index }: { workshop: Workshop; index: number }) => {
   const categoryInfo = CATEGORY_LABELS[workshop.category];
   
-  // Pour les ateliers récurrents, calculer la prochaine séance
-  const nextSession = workshop.isRecurring 
-    ? getNextSession(
-        workshop.recurrenceDays, 
-        workshop.recurrenceInterval || 1,
-        workshop.seasonStartDate,
-        workshop.seasonEndDate,
-        workshop.startTime,
-        workshop.cancellationPeriods
-      )
-    : null;
+  // Mémoriser le calcul de la prochaine séance
+  const nextSession = useMemo(() => {
+    if (!workshop.isRecurring) return null;
+    
+    // Vérifier le cache
+    const cacheKey = CacheKeys.nextSession(workshop.id);
+    const cached = cache.get<Date | null>(cacheKey);
+    if (cached !== null) return cached;
+    
+    const session = getNextSession(
+      workshop.recurrenceDays, 
+      workshop.recurrenceInterval || 1,
+      workshop.seasonStartDate,
+      workshop.seasonEndDate,
+      workshop.startTime,
+      workshop.cancellationPeriods
+    );
+    
+    // Mettre en cache (TTL de 1 heure car les séances changent peu)
+    cache.set(cacheKey, session, 60 * 60 * 1000);
+    
+    return session;
+  }, [
+    workshop.isRecurring,
+    workshop.recurrenceDays,
+    workshop.recurrenceInterval,
+    workshop.seasonStartDate,
+    workshop.seasonEndDate,
+    workshop.startTime,
+    workshop.id,
+    // Note: cancellationPeriods peut changer, mais on garde le cache court
+  ]);
+
+  // Mémoriser le formatage de l'horaire
+  const scheduleText = useMemo(() => {
+    if (!workshop.isRecurring) {
+      return workshop.date ? format(workshop.date, "d MMMM yyyy 'à' HH:mm", { locale: fr }) : null;
+    }
+    return formatWorkshopSchedule(
+      workshop.recurrenceDays, 
+      workshop.startTime, 
+      workshop.endTime,
+      workshop.recurrenceInterval
+    );
+  }, [workshop.isRecurring, workshop.recurrenceDays, workshop.startTime, workshop.endTime, workshop.recurrenceInterval, workshop.date]);
 
   return (
     <motion.div
@@ -307,14 +367,11 @@ function WorkshopCard({ workshop, index }: { workshop: Workshop; index: number }
               <CardDescription className="text-base">
                 {workshop.isRecurring ? (
                   <>
-                    <div className="mb-1">
-                      🕐 {formatWorkshopSchedule(
-                        workshop.recurrenceDays, 
-                        workshop.startTime, 
-                        workshop.endTime,
-                        workshop.recurrenceInterval
-                      )}
-                    </div>
+                    {scheduleText && (
+                      <div className="mb-1">
+                        🕐 {scheduleText}
+                      </div>
+                    )}
                     {nextSession && (
                       <div className="text-[#00A8A8] font-semibold">
                         📅 Prochaine séance : {format(nextSession, "d MMMM yyyy 'à' HH:mm", { locale: fr })}
@@ -322,8 +379,8 @@ function WorkshopCard({ workshop, index }: { workshop: Workshop; index: number }
                     )}
                   </>
                 ) : (
-                  workshop.date && (
-                    <>📅 {format(workshop.date, "d MMMM yyyy 'à' HH:mm", { locale: fr })}</>
+                  scheduleText && (
+                    <>📅 {scheduleText}</>
                   )
                 )}
               </CardDescription>
@@ -390,4 +447,13 @@ function WorkshopCard({ workshop, index }: { workshop: Workshop; index: number }
       </Link>
     </motion.div>
   );
-}
+}, (prevProps, nextProps) => {
+  // Comparaison personnalisée pour éviter les re-renders inutiles
+  return (
+    prevProps.workshop.id === nextProps.workshop.id &&
+    prevProps.workshop.updatedAt?.getTime() === nextProps.workshop.updatedAt?.getTime() &&
+    prevProps.index === nextProps.index
+  );
+});
+
+WorkshopCard.displayName = 'WorkshopCard';

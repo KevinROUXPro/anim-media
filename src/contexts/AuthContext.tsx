@@ -12,6 +12,7 @@ import {
 import { doc, getDoc, setDoc, Timestamp, collection, getDocs, limit, query } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { User, UserRole, MembershipStatus } from '@/types';
+import { cache, CacheKeys } from '@/lib/cache';
 
 interface AuthContextType {
   user: User | null;
@@ -36,11 +37,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setFirebaseUser(firebaseUser);
       
       if (firebaseUser) {
+        // Vérifier le cache d'abord
+        const cacheKey = CacheKeys.user(firebaseUser.uid);
+        const cachedUser = cache.get<User>(cacheKey);
+        
+        if (cachedUser) {
+          setUser(cachedUser);
+          setLoading(false);
+          return;
+        }
+
         // Récupérer les données utilisateur depuis Firestore
         const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
         if (userDoc.exists()) {
           const userData = userDoc.data();
-          setUser({
+          const user: User = {
             id: firebaseUser.uid,
             email: firebaseUser.email!,
             name: userData.name || firebaseUser.displayName || '',
@@ -50,7 +61,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             membershipNumber: userData.membershipNumber,
             membershipExpiry: userData.membershipExpiry?.toDate(),
             membershipStartDate: userData.membershipStartDate?.toDate(),
-          });
+          };
+          
+          setUser(user);
+          // Mettre en cache (TTL de 10 minutes)
+          cache.set(cacheKey, user, 10 * 60 * 1000);
         }
       } else {
         setUser(null);
@@ -103,6 +118,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
+    // Nettoyer le cache utilisateur à la déconnexion
+    if (firebaseUser) {
+      const cacheKey = CacheKeys.user(firebaseUser.uid);
+      cache.delete(cacheKey);
+    }
     await firebaseSignOut(auth);
   };
 
@@ -112,7 +132,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
     if (userDoc.exists()) {
       const userData = userDoc.data();
-      setUser({
+      const user: User = {
         id: firebaseUser.uid,
         email: firebaseUser.email!,
         name: userData.name || firebaseUser.displayName || '',
@@ -122,7 +142,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         membershipNumber: userData.membershipNumber,
         membershipExpiry: userData.membershipExpiry?.toDate(),
         membershipStartDate: userData.membershipStartDate?.toDate(),
-      });
+      };
+      
+      setUser(user);
+      // Mettre à jour le cache
+      const cacheKey = CacheKeys.user(firebaseUser.uid);
+      cache.set(cacheKey, user, 10 * 60 * 1000);
     }
   };
 

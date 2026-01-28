@@ -5,7 +5,7 @@ import { useInView } from 'react-intersection-observer';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { collection, query, where, orderBy, limit, getDocs, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Event, Workshop, CATEGORY_LABELS, ActivityCategory, MembershipStatus, CancellationPeriod } from '@/types';
@@ -16,6 +16,7 @@ import { getNextSession } from '@/lib/workshop-utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { EventCardSkeleton } from '@/components/ui/loading-skeleton';
 import { OptimizedImage } from '@/components/OptimizedImage';
+import { cache, CacheKeys } from '@/lib/cache';
 import { 
   fadeInUp, 
   staggerContainer, 
@@ -37,64 +38,82 @@ export default function Home() {
   const [upcomingWorkshops, setUpcomingWorkshops] = useState<Workshop[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function fetchUpcomingActivities() {
-      try {
-        const now = Timestamp.now();
+  // Fonction pour récupérer les activités avec cache
+  const fetchUpcomingActivities = useCallback(async () => {
+    const cacheKey = 'home_upcoming_activities';
+    
+    // Vérifier le cache
+    const cached = cache.get<{ events: Event[]; workshops: Workshop[] }>(cacheKey);
+    if (cached) {
+      setUpcomingEvents(cached.events);
+      setUpcomingWorkshops(cached.workshops);
+      setLoading(false);
+      return;
+    }
 
-        // Récupérer les 3 prochains événements
-        const eventsQuery = query(
-          collection(db, 'events'),
-          where('date', '>=', now),
-          orderBy('date', 'asc'),
-          limit(3)
-        );
-        const eventsSnapshot = await getDocs(eventsQuery);
-        const events = eventsSnapshot.docs.map(doc => ({
-          ...doc.data(),
+    try {
+      const now = Timestamp.now();
+
+      // Récupérer les 3 prochains événements
+      const eventsQuery = query(
+        collection(db, 'events'),
+        where('date', '>=', now),
+        orderBy('date', 'asc'),
+        limit(3)
+      );
+      const eventsSnapshot = await getDocs(eventsQuery);
+      const events = eventsSnapshot.docs.map(doc => ({
+        ...doc.data(),
+        id: doc.id,
+        date: doc.data().date.toDate(),
+        createdAt: doc.data().createdAt.toDate(),
+        updatedAt: doc.data().updatedAt.toDate(),
+      })) as Event[];
+
+      // Récupérer les ateliers avec limite
+      const workshopsQuery = query(
+        collection(db, 'workshops'),
+        orderBy('createdAt', 'desc'),
+        limit(20) // Limiter à 20 pour le traitement
+      );
+      const workshopsSnapshot = await getDocs(workshopsQuery);
+      
+      const allWorkshops = workshopsSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          ...data,
           id: doc.id,
-          date: doc.data().date.toDate(),
-          createdAt: doc.data().createdAt.toDate(),
-          updatedAt: doc.data().updatedAt.toDate(),
-        })) as Event[];
+          isRecurring: data.isRecurring || false,
+          recurrenceDays: data.recurrenceDays || [],
+          recurrenceInterval: data.recurrenceInterval || 1,
+          startTime: data.startTime || '14:00',
+          endTime: data.endTime || '16:00',
+          createdAt: data.createdAt.toDate(),
+          updatedAt: data.updatedAt.toDate(),
+          startDate: data.startDate?.toDate(),
+          endDate: data.endDate?.toDate(),
+          seasonStartDate: data.seasonStartDate?.toDate(),
+          seasonEndDate: data.seasonEndDate?.toDate(),
+          cancellationPeriods: data.cancellationPeriods?.map((period: any) => ({
+            startDate: period.startDate.toDate(),
+            endDate: period.endDate.toDate(),
+            reason: period.reason
+          }))
+        } as Workshop;
+      });
 
-        // Récupérer tous les ateliers actifs
-        const workshopsQuery = query(
-          collection(db, 'workshops'),
-          orderBy('createdAt', 'desc')
-        );
-        const workshopsSnapshot = await getDocs(workshopsQuery);
-        
-        const allWorkshops = workshopsSnapshot.docs.map(doc => {
-          const data = doc.data();
-          return {
-            ...data,
-            id: doc.id,
-            isRecurring: data.isRecurring || false,
-            recurrenceDays: data.recurrenceDays || [],
-            recurrenceInterval: data.recurrenceInterval || 1,
-            startTime: data.startTime || '14:00',
-            endTime: data.endTime || '16:00',
-            createdAt: data.createdAt.toDate(),
-            updatedAt: data.updatedAt.toDate(),
-            startDate: data.startDate?.toDate(),
-            endDate: data.endDate?.toDate(),
-            seasonStartDate: data.seasonStartDate?.toDate(),
-            seasonEndDate: data.seasonEndDate?.toDate(),
-            cancellationPeriods: data.cancellationPeriods?.map((period: any) => ({
-              startDate: period.startDate.toDate(),
-              endDate: period.endDate.toDate(),
-              reason: period.reason
-            }))
-          } as Workshop;
-        });
-
-        // Filtrer et trier les ateliers par prochaine séance
-        const workshopsWithNextSession = allWorkshops
-          .map(workshop => {
-            let nextSession: Date | null = null;
-            
-            if (workshop.isRecurring) {
+      // Filtrer et trier les ateliers par prochaine séance
+      const workshopsWithNextSession = allWorkshops
+        .map(workshop => {
+          let nextSession: Date | null = null;
+          
+          if (workshop.isRecurring) {
+            // Vérifier le cache pour nextSession
+            const sessionCacheKey = CacheKeys.nextSession(workshop.id);
+            const cachedSession = cache.get<Date | null>(sessionCacheKey);
+            if (cachedSession !== null) {
+              nextSession = cachedSession;
+            } else {
               nextSession = getNextSession(
                 workshop.recurrenceDays || [],
                 workshop.recurrenceInterval || 1,
@@ -103,41 +122,44 @@ export default function Home() {
                 workshop.startTime || '14:00',
                 workshop.cancellationPeriods
               );
-            } else if (workshop.startDate && workshop.startDate > new Date()) {
-              nextSession = workshop.startDate;
+              // Mettre en cache
+              cache.set(sessionCacheKey, nextSession, 60 * 60 * 1000);
             }
-            
-            return { workshop, nextSession };
-          })
-          .filter(item => {
-            // Afficher les ateliers avec une prochaine séance OU sans date de fin définie
-            return item.nextSession !== null || !item.workshop.seasonEndDate;
-          })
-          .sort((a, b) => {
-            // Ateliers avec prochaine séance d'abord, triés par date
-            if (a.nextSession && b.nextSession) {
-              return a.nextSession.getTime() - b.nextSession.getTime();
-            }
-            // Ateliers sans prochaine séance en dernier
-            if (a.nextSession && !b.nextSession) return -1;
-            if (!a.nextSession && b.nextSession) return 1;
-            // Si aucun n'a de prochaine séance, trier par date de création (plus récent d'abord)
-            return 0;
-          })
-          .slice(0, 3)
-          .map(item => item.workshop);
+          } else if (workshop.startDate && workshop.startDate > new Date()) {
+            nextSession = workshop.startDate;
+          }
+          
+          return { workshop, nextSession };
+        })
+        .filter(item => {
+          return item.nextSession !== null || !item.workshop.seasonEndDate;
+        })
+        .sort((a, b) => {
+          if (a.nextSession && b.nextSession) {
+            return a.nextSession.getTime() - b.nextSession.getTime();
+          }
+          if (a.nextSession && !b.nextSession) return -1;
+          if (!a.nextSession && b.nextSession) return 1;
+          return 0;
+        })
+        .slice(0, 3)
+        .map(item => item.workshop);
 
-        setUpcomingEvents(events);
-        setUpcomingWorkshops(workshopsWithNextSession);
-      } catch (error) {
-        console.error('Erreur lors de la récupération des activités:', error);
-      } finally {
-        setLoading(false);
-      }
+      setUpcomingEvents(events);
+      setUpcomingWorkshops(workshopsWithNextSession);
+      
+      // Mettre en cache (TTL de 2 minutes pour la page d'accueil)
+      cache.set(cacheKey, { events, workshops: workshopsWithNextSession }, 2 * 60 * 1000);
+    } catch (error) {
+      console.error('Erreur lors de la récupération des activités:', error);
+    } finally {
+      setLoading(false);
     }
-
-    fetchUpcomingActivities();
   }, []);
+
+  useEffect(() => {
+    fetchUpcomingActivities();
+  }, [fetchUpcomingActivities]);
 
   return (
     <div className="min-h-screen">
@@ -605,7 +627,8 @@ export default function Home() {
   );
 }
 
-function ActivityCard({ title, description, date, category, location, href, imageUrl, delay, inView }: {
+// Memoization du composant ActivityCard
+const ActivityCard = React.memo(({ title, description, date, category, location, href, imageUrl, delay, inView }: {
   title: string;
   description: string;
   date: Date;
@@ -615,8 +638,13 @@ function ActivityCard({ title, description, date, category, location, href, imag
   imageUrl?: string;
   delay: number;
   inView: boolean;
-}) {
+}) => {
   const categoryInfo = CATEGORY_LABELS[category];
+
+  // Mémoriser le formatage de la date
+  const formattedDate = useMemo(() => {
+    return format(date, "d MMMM yyyy 'à' HH:mm", { locale: fr });
+  }, [date]);
 
   return (
     <motion.div
@@ -713,7 +741,7 @@ function ActivityCard({ title, description, date, category, location, href, imag
               )}
               <CardTitle className="text-xl sm:text-2xl font-bold">{title}</CardTitle>
               <CardDescription className="text-sm sm:text-base">
-                📅 {format(date, "d MMMM yyyy 'à' HH:mm", { locale: fr })}
+                📅 {formattedDate}
               </CardDescription>
             </CardHeader>
             <CardContent className="pb-6">
@@ -730,35 +758,61 @@ function ActivityCard({ title, description, date, category, location, href, imag
   );
 }
 
-function WorkshopCard({ workshop, delay, inView }: {
+// Memoization du composant WorkshopCard pour la page d'accueil
+const WorkshopCard = React.memo(({ workshop, delay, inView }: {
   workshop: Workshop;
   delay: number;
   inView: boolean;
-}) {
+}) => {
   const categoryInfo = CATEGORY_LABELS[workshop.category];
 
-  // Calculer la prochaine séance
-  const nextSession = workshop.isRecurring
-    ? getNextSession(
-        workshop.recurrenceDays || [],
-        workshop.recurrenceInterval || 1,
-        workshop.seasonStartDate,
-        workshop.seasonEndDate,
-        workshop.startTime || '14:00',
-        workshop.cancellationPeriods
-      )
-    : workshop.startDate && workshop.startDate > new Date()
-      ? workshop.startDate
-      : null;
+  // Mémoriser le calcul de la prochaine séance
+  const nextSession = useMemo(() => {
+    if (!workshop.isRecurring) {
+      return workshop.startDate && workshop.startDate > new Date() ? workshop.startDate : null;
+    }
+    
+    // Vérifier le cache
+    const cacheKey = CacheKeys.nextSession(workshop.id);
+    const cached = cache.get<Date | null>(cacheKey);
+    if (cached !== null) return cached;
+    
+    const session = getNextSession(
+      workshop.recurrenceDays || [],
+      workshop.recurrenceInterval || 1,
+      workshop.seasonStartDate,
+      workshop.seasonEndDate,
+      workshop.startTime || '14:00',
+      workshop.cancellationPeriods
+    );
+    
+    // Mettre en cache
+    cache.set(cacheKey, session, 60 * 60 * 1000);
+    
+    return session;
+  }, [
+    workshop.isRecurring,
+    workshop.recurrenceDays,
+    workshop.recurrenceInterval,
+    workshop.seasonStartDate,
+    workshop.seasonEndDate,
+    workshop.startTime,
+    workshop.startDate,
+    workshop.id,
+  ]);
 
-  // Formater l'horaire
-  const scheduleText = workshop.isRecurring && workshop.recurrenceDays
-    ? `📅 ${workshop.recurrenceDays
+  // Mémoriser le formatage de l'horaire
+  const scheduleText = useMemo(() => {
+    if (workshop.isRecurring && workshop.recurrenceDays) {
+      return `📅 ${workshop.recurrenceDays
         .map(day => ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'][day])
-        .join(', ')} ${workshop.startTime || '14:00'}-${workshop.endTime || '16:00'}`
-    : nextSession
+        .join(', ')} ${workshop.startTime || '14:00'}-${workshop.endTime || '16:00'}`;
+    }
+    return nextSession
       ? `📅 ${format(nextSession, "d MMMM yyyy 'à' HH:mm", { locale: fr })}`
       : '📅 Dates à venir';
+  }, [workshop.isRecurring, workshop.recurrenceDays, workshop.startTime, workshop.endTime, nextSession]);
+
 
   return (
     <motion.div
@@ -875,7 +929,16 @@ function WorkshopCard({ workshop, delay, inView }: {
       </Link>
     </motion.div>
   );
-}
+}, (prevProps, nextProps) => {
+  return (
+    prevProps.workshop.id === nextProps.workshop.id &&
+    prevProps.workshop.updatedAt?.getTime() === nextProps.workshop.updatedAt?.getTime() &&
+    prevProps.delay === nextProps.delay &&
+    prevProps.inView === nextProps.inView
+  );
+});
+
+WorkshopCard.displayName = 'WorkshopCard';
 
 // Section CTA pour l'adhésion
 function MembershipCTA() {

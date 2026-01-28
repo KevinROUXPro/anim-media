@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { collection, query, orderBy, getDocs, Timestamp, where } from 'firebase/firestore';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { collection, query, orderBy, getDocs, Timestamp, where, limit as firestoreLimit } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Event, ActivityCategory, CATEGORY_LABELS } from '@/types';
 import { motion } from 'framer-motion';
@@ -14,6 +14,8 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { THEME_CLASSES } from '@/config/theme';
 import { fadeInUp, staggerContainer, staggerItem, bounceIn } from '@/lib/animations';
+import { cache, CacheKeys } from '@/lib/cache';
+import { EventCardSkeleton } from '@/components/ui/loading-skeleton';
 
 export default function EventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
@@ -22,43 +24,75 @@ export default function EventsPage() {
   const [loading, setLoading] = useState(true);
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 });
 
+  // Fonction pour récupérer les événements avec cache et filtre Firestore
+  const fetchEvents = useCallback(async (category?: ActivityCategory | 'ALL') => {
+    const cacheKey = CacheKeys.events(category === 'ALL' ? undefined : category);
+    
+    // Vérifier le cache
+    const cached = cache.get<Event[]>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    try {
+      const now = Timestamp.now();
+      
+      // Construire la requête avec filtre côté Firestore
+      let eventsQuery = query(
+        collection(db, 'events'),
+        where('date', '>=', now),
+        orderBy('date', 'asc'),
+        firestoreLimit(50) // Limiter à 50 événements
+      );
+
+      // Filtrer par catégorie côté Firestore si nécessaire
+      // Note: Firestore nécessite un index composite pour where + orderBy + where
+      // Pour l'instant, on filtre après si nécessaire pour éviter les erreurs d'index
+      const snapshot = await getDocs(eventsQuery);
+      let eventsData = snapshot.docs.map(doc => ({
+        ...doc.data(),
+        id: doc.id,
+        date: doc.data().date.toDate(),
+        createdAt: doc.data().createdAt.toDate(),
+        updatedAt: doc.data().updatedAt.toDate(),
+      })) as Event[];
+
+      // Filtrer par catégorie si nécessaire (temporairement côté client jusqu'à ce que l'index soit créé)
+      if (category && category !== 'ALL') {
+        eventsData = eventsData.filter(event => event.category === category);
+      }
+      
+      // Mettre en cache (TTL de 5 minutes)
+      cache.set(cacheKey, eventsData, 5 * 60 * 1000);
+      
+      return eventsData;
+    } catch (error) {
+      console.error('Error fetching events:', error);
+      throw error;
+    }
+  }, []);
+
   useEffect(() => {
-    async function fetchEvents() {
+    async function loadEvents() {
+      setLoading(true);
       try {
-        const now = Timestamp.now();
-        const eventsQuery = query(
-          collection(db, 'events'),
-          where('date', '>=', now),
-          orderBy('date', 'asc')
-        );
-        const snapshot = await getDocs(eventsQuery);
-        const eventsData = snapshot.docs.map(doc => ({
-          ...doc.data(),
-          id: doc.id,
-          date: doc.data().date.toDate(),
-          createdAt: doc.data().createdAt.toDate(),
-          updatedAt: doc.data().updatedAt.toDate(),
-        })) as Event[];
-        
-        setEvents(eventsData);
-        setFilteredEvents(eventsData);
+        const data = await fetchEvents(selectedCategory);
+        setEvents(data);
+        setFilteredEvents(data);
       } catch (error) {
-        console.error('Error fetching events:', error);
+        console.error('Error loading events:', error);
       } finally {
         setLoading(false);
       }
     }
 
-    fetchEvents();
-  }, []);
+    loadEvents();
+  }, [selectedCategory, fetchEvents]);
 
-  useEffect(() => {
-    if (selectedCategory === 'ALL') {
-      setFilteredEvents(events);
-    } else {
-      setFilteredEvents(events.filter(event => event.category === selectedCategory));
-    }
-  }, [selectedCategory, events]);
+  // Mémoriser les événements filtrés
+  const memoizedFilteredEvents = useMemo(() => {
+    return filteredEvents;
+  }, [filteredEvents]);
 
   return (
     <div className="min-h-screen bg-[#F7EDE0]/30">
@@ -151,21 +185,19 @@ export default function EventsPage() {
       <section ref={ref} className="py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {loading ? (
-            <motion.div 
-              className="flex justify-center"
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            >
-              <div className={`rounded-full h-16 w-16 border-4 border-t-transparent ${THEME_CLASSES.borderPrimary}`}></div>
-            </motion.div>
-          ) : filteredEvents.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <EventCardSkeleton key={i} />
+              ))}
+            </div>
+          ) : memoizedFilteredEvents.length > 0 ? (
             <motion.div 
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
               variants={staggerContainer}
               initial="hidden"
               animate="visible"
             >
-              {filteredEvents.map((event, index) => (
+              {memoizedFilteredEvents.map((event, index) => (
                 <EventCard key={event.id} event={event} index={index} inView={inView} />
               ))}
             </motion.div>
@@ -187,8 +219,14 @@ export default function EventsPage() {
   );
 }
 
-function EventCard({ event, index, inView }: { event: Event; index: number; inView: boolean }) {
+// Memoization du composant EventCard
+const EventCard = React.memo(({ event, index, inView }: { event: Event; index: number; inView: boolean }) => {
   const categoryInfo = CATEGORY_LABELS[event.category];
+
+  // Mémoriser le formatage de la date
+  const formattedDate = useMemo(() => {
+    return format(event.date, "d MMMM yyyy 'à' HH:mm", { locale: fr });
+  }, [event.date]);
 
   return (
     <motion.div
@@ -253,7 +291,7 @@ function EventCard({ event, index, inView }: { event: Event; index: number; inVi
               </div>
               <CardTitle className="text-2xl font-bold">{event.title}</CardTitle>
               <CardDescription className="text-base">
-                📅 {format(event.date, "d MMMM yyyy 'à' HH:mm", { locale: fr })}
+                📅 {formattedDate}
               </CardDescription>
             </CardHeader>
             <CardContent className="pb-6">
@@ -299,4 +337,14 @@ function EventCard({ event, index, inView }: { event: Event; index: number; inVi
       </Link>
     </motion.div>
   );
-}
+}, (prevProps, nextProps) => {
+  // Comparaison personnalisée pour éviter les re-renders inutiles
+  return (
+    prevProps.event.id === nextProps.event.id &&
+    prevProps.event.updatedAt?.getTime() === nextProps.event.updatedAt?.getTime() &&
+    prevProps.index === nextProps.index &&
+    prevProps.inView === nextProps.inView
+  );
+});
+
+EventCard.displayName = 'EventCard';
