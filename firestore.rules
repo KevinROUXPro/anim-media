@@ -13,62 +13,176 @@ service cloud.firestore {
              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.membershipStatus == 'ACTIVE';
     }
     
+    // Fonction helper pour valider les chaînes de caractères
+    function isValidString(value, minLength, maxLength) {
+      return value is string && 
+             value.size() >= minLength && 
+             value.size() <= maxLength;
+    }
+    
+    // Fonction helper pour valider les emails
+    function isValidEmail(email) {
+      return email is string && 
+             email.matches('^[^@]+@[^@]+\\.[^@]+$') &&
+             email.size() <= 254;
+    }
+    
+    // Fonction helper pour valider les nombres
+    function isValidNumber(value, min, max) {
+      return value is int && value >= min && value <= max;
+    }
+    
     // Utilisateurs
     match /users/{userId} {
       // Lecture uniquement pour l'utilisateur lui-même ou les admins (sécurité RGPD)
       allow read: if request.auth != null && 
                     (request.auth.uid == userId || isAdmin());
-      // Écriture uniquement pour l'utilisateur lui-même ou les admins
-      allow write: if request.auth.uid == userId || isAdmin();
+      
+      // Création avec validation
+      allow create: if request.auth != null &&
+                      request.auth.uid == userId &&
+                      isValidString(request.resource.data.name, 2, 100) &&
+                      isValidEmail(request.resource.data.email) &&
+                      request.resource.data.role in ['USER', 'ADMIN'] &&
+                      request.resource.data.membershipStatus in ['NONE', 'ACTIVE', 'EXPIRED'];
+      
+      // Mise à jour avec validation
+      allow update: if request.auth.uid == userId || isAdmin() &&
+                      (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['id', 'email']) ||
+                       isAdmin()) &&
+                      (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']) ||
+                       isAdmin());
+      
+      // Suppression uniquement pour les admins
+      allow delete: if isAdmin();
     }
     
     // Ateliers (lecture publique)
     match /workshops/{workshopId} {
       allow read: if true;
-      allow write: if isAdmin();
+      
+      // Création avec validation stricte
+      allow create: if isAdmin() &&
+                      isValidString(request.resource.data.title, 3, 200) &&
+                      isValidString(request.resource.data.description, 10, 5000) &&
+                      isValidString(request.resource.data.location, 3, 200) &&
+                      isValidString(request.resource.data.instructor, 2, 100) &&
+                      request.resource.data.category in ['ARTS_CREATIFS', 'LECTURE_ECRITURE', 'NUMERIQUE', 'PATRIMOINE', 'ARTS_VIVANTS', 'JEUX_LOISIRS', 'AUTRE'] &&
+                      request.resource.data.level in ['DEBUTANT', 'INTERMEDIAIRE', 'AVANCE'] &&
+                      request.resource.data.isRecurring == true &&
+                      request.resource.data.recurrenceDays is list &&
+                      request.resource.data.recurrenceDays.size() > 0 &&
+                      isValidNumber(request.resource.data.recurrenceInterval, 1, 4) &&
+                      request.resource.data.startTime is string &&
+                      request.resource.data.endTime is string &&
+                      (!('maxParticipants' in request.resource.data) ||
+                       isValidNumber(request.resource.data.maxParticipants, 1, 1000)) &&
+                      (!('currentParticipants' in request.resource.data) ||
+                       isValidNumber(request.resource.data.currentParticipants, 0, 1000));
+      
+      // Mise à jour avec validation
+      allow update: if isAdmin() &&
+                      isValidString(request.resource.data.title, 3, 200) &&
+                      isValidString(request.resource.data.description, 10, 5000) &&
+                      isValidString(request.resource.data.location, 3, 200) &&
+                      isValidString(request.resource.data.instructor, 2, 100);
+      
+      // Suppression uniquement pour les admins
+      allow delete: if isAdmin();
     }
     
     // Événements (lecture publique)
     match /events/{eventId} {
       allow read: if true;
-      allow write: if isAdmin();
+      
+      // Création avec validation stricte
+      allow create: if isAdmin() &&
+                      isValidString(request.resource.data.title, 3, 200) &&
+                      isValidString(request.resource.data.description, 10, 5000) &&
+                      isValidString(request.resource.data.location, 3, 200) &&
+                      request.resource.data.category in ['ARTS_CREATIFS', 'LECTURE_ECRITURE', 'NUMERIQUE', 'PATRIMOINE', 'ARTS_VIVANTS', 'JEUX_LOISIRS', 'AUTRE'] &&
+                      request.resource.data.date is timestamp &&
+                      request.resource.data.date > timestamp.date(2020, 1, 1) &&
+                      (!('maxParticipants' in request.resource.data) ||
+                       isValidNumber(request.resource.data.maxParticipants, 1, 1000)) &&
+                      (!('currentParticipants' in request.resource.data) ||
+                       isValidNumber(request.resource.data.currentParticipants, 0, 1000));
+      
+      // Mise à jour avec validation
+      allow update: if isAdmin() &&
+                      isValidString(request.resource.data.title, 3, 200) &&
+                      isValidString(request.resource.data.description, 10, 5000) &&
+                      isValidString(request.resource.data.location, 3, 200);
+      
+      // Suppression uniquement pour les admins
+      allow delete: if isAdmin();
     }
     
     // Inscriptions
     match /registrations/{registrationId} {
       allow read: if request.auth != null && 
                     (resource.data.userId == request.auth.uid || isAdmin());
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      
+      // Création avec validation
+      allow create: if request.auth != null && 
+                      request.resource.data.userId == request.auth.uid &&
+                      (request.resource.data.eventId is string || request.resource.data.workshopId is string) &&
+                      !(request.resource.data.eventId is string && request.resource.data.workshopId is string);
+      
+      // Suppression uniquement pour l'utilisateur ou un admin
       allow delete: if request.auth != null && 
                       (resource.data.userId == request.auth.uid || isAdmin());
+      
+      // Pas de mise à jour autorisée
+      allow update: if false;
     }
     
-    // Suggestions - NOUVEAU
+    // Suggestions
     match /suggestions/{suggestionId} {
       // Lecture publique pour tous
       allow read: if true;
       
-      // Création uniquement pour les adhérents actifs
+      // Création uniquement pour les adhérents actifs avec validation
       allow create: if isActiveMember() && 
-                      request.resource.data.userId == request.auth.uid;
+                      request.resource.data.userId == request.auth.uid &&
+                      isValidString(request.resource.data.title, 3, 200) &&
+                      isValidString(request.resource.data.description, 10, 2000) &&
+                      request.resource.data.category in ['ARTS_CREATIFS', 'LECTURE_ECRITURE', 'NUMERIQUE', 'PATRIMOINE', 'ARTS_VIVANTS', 'JEUX_LOISIRS', 'AUTRE'] &&
+                      request.resource.data.likes is list &&
+                      request.resource.data.likes.size() == 0;
       
       // Mise à jour uniquement pour les likes (via arrayUnion/arrayRemove)
       // Ou pour l'auteur ou un admin
       allow update: if request.auth != null && 
-                      (resource.data.userId == request.auth.uid || isAdmin());
+                      (resource.data.userId == request.auth.uid || isAdmin()) &&
+                      (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['title', 'description', 'category']) ||
+                       resource.data.userId == request.auth.uid || isAdmin());
       
       // Suppression uniquement pour l'auteur ou un admin
       allow delete: if request.auth != null && 
                       (resource.data.userId == request.auth.uid || isAdmin());
     }
     
-    // Comptes rendus d'AG - NOUVEAU
+    // Comptes rendus d'AG
     match /agReports/{reportId} {
       // Lecture uniquement pour les adhérents actifs
       allow read: if isActiveMember();
       
-      // Écriture uniquement pour les admins
-      allow write: if isAdmin();
+      // Création avec validation
+      allow create: if isAdmin() &&
+                      isValidString(request.resource.data.title, 3, 200) &&
+                      isValidString(request.resource.data.description, 10, 2000) &&
+                      request.resource.data.date is timestamp &&
+                      request.resource.data.pdfUrl is string &&
+                      request.resource.data.fileName is string;
+      
+      // Mise à jour avec validation
+      allow update: if isAdmin() &&
+                      isValidString(request.resource.data.title, 3, 200) &&
+                      isValidString(request.resource.data.description, 10, 2000);
+      
+      // Suppression uniquement pour les admins
+      allow delete: if isAdmin();
     }
   }
 }

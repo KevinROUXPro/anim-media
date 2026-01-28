@@ -14,6 +14,8 @@ import { fr } from 'date-fns/locale';
 import { THEME_CLASSES } from '@/config/theme';
 import { getNextSession } from '@/lib/workshop-utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { EventCardSkeleton } from '@/components/ui/loading-skeleton';
+import { OptimizedImage } from '@/components/OptimizedImage';
 import { 
   fadeInUp, 
   staggerContainer, 
@@ -338,13 +340,11 @@ export default function Home() {
           </motion.div>
 
           {loading ? (
-            <motion.div 
-              className="flex justify-center"
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-            >
-              <div className={`rounded-full h-16 w-16 border-4 border-t-transparent ${THEME_CLASSES.borderPrimary}`}></div>
-            </motion.div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <EventCardSkeleton key={i} />
+              ))}
+            </div>
           ) : (
             <div className="space-y-16">
               {/* Événements */}
@@ -660,15 +660,21 @@ function ActivityCard({ title, description, date, category, location, href, imag
               />
             {imageUrl && (
               <div className="relative h-48 w-full overflow-hidden">
-                <motion.img
-                  src={imageUrl}
-                  alt={title}
-                  className="w-full h-full object-cover"
+                <motion.div
                   whileHover={{ scale: 1.1 }}
                   transition={{ duration: 0.3 }}
-                />
+                  className="h-full w-full"
+                >
+                  <OptimizedImage
+                    src={imageUrl}
+                    alt={title}
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    objectFit="cover"
+                  />
+                </motion.div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-                <div className="absolute bottom-2 left-2 right-2 flex items-center gap-2">
+                <div className="absolute bottom-2 left-2 right-2 flex items-center gap-2 z-10">
                   <motion.span 
                     className="text-2xl"
                     animate={{
@@ -796,15 +802,21 @@ function WorkshopCard({ workshop, delay, inView }: {
               />
             {workshop.imageUrl && (
               <div className="relative h-48 w-full overflow-hidden">
-                <motion.img
-                  src={workshop.imageUrl}
-                  alt={workshop.title}
-                  className="w-full h-full object-cover"
+                <motion.div
                   whileHover={{ scale: 1.1 }}
                   transition={{ duration: 0.3 }}
-                />
+                  className="h-full w-full"
+                >
+                  <OptimizedImage
+                    src={workshop.imageUrl}
+                    alt={workshop.title}
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    objectFit="cover"
+                  />
+                </motion.div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-                <div className="absolute bottom-2 left-2 right-2 flex items-center gap-2">
+                <div className="absolute bottom-2 left-2 right-2 flex items-center gap-2 z-10">
                   <motion.span 
                     className="text-2xl"
                     animate={{

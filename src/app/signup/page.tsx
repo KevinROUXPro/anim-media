@@ -12,6 +12,14 @@ import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { THEME_CLASSES } from '@/config/theme';
 import { scaleInBounce, slideInRight, fadeIn } from '@/lib/animations';
+import { ErrorMessage } from '@/components/ui/error-message';
+import { 
+  isValidEmail, 
+  validatePassword, 
+  isValidName, 
+  sanitizeString,
+  checkRateLimit 
+} from '@/lib/validation';
 
 export default function SignupPage() {
   const [name, setName] = useState('');
@@ -20,33 +28,93 @@ export default function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<string>('');
+  const [passwordStrength, setPasswordStrength] = useState<'weak' | 'medium' | 'strong' | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const { signUp } = useAuth();
   const router = useRouter();
 
+  const handlePasswordChange = (value: string) => {
+    setPassword(value);
+    if (value.length > 0) {
+      const validation = validatePassword(value);
+      setPasswordStrength(validation.strength);
+      if (!validation.isValid && value.length >= 6) {
+        setFieldErrors(prev => ({ ...prev, password: validation.errors[0] }));
+      } else {
+        setFieldErrors(prev => {
+          const newErrors = { ...prev };
+          delete newErrors.password;
+          return newErrors;
+        });
+      }
+    } else {
+      setPasswordStrength(null);
+      setFieldErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.password;
+        return newErrors;
+      });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(''); // Réinitialiser l'erreur
+    setError('');
+    setFieldErrors({});
+
+    // Rate limiting
+    if (!checkRateLimit('signup', 3, 60000)) {
+      setError('Trop de tentatives. Veuillez patienter avant de réessayer.');
+      return;
+    }
+
+    // Validation du nom
+    const sanitizedName = sanitizeString(name, 100);
+    if (!isValidName(sanitizedName)) {
+      setFieldErrors(prev => ({ 
+        ...prev, 
+        name: 'Le nom doit contenir entre 2 et 100 caractères et ne contenir que des lettres, chiffres, espaces et caractères spéciaux français'
+      }));
+      return;
+    }
+
+    // Validation de l'email
+    if (!isValidEmail(email)) {
+      setFieldErrors(prev => ({ 
+        ...prev, 
+        email: 'Email invalide'
+      }));
+      return;
+    }
+
+    // Validation du mot de passe
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
+      setFieldErrors(prev => ({ 
+        ...prev, 
+        password: passwordValidation.errors[0]
+      }));
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setFieldErrors(prev => ({ 
+        ...prev, 
+        confirmPassword: 'Les mots de passe ne correspondent pas'
+      }));
+      return;
+    }
 
     if (!acceptedPrivacy) {
       setError('Vous devez accepter la politique de confidentialité pour créer un compte');
       return;
     }
 
-    if (password !== confirmPassword) {
-      setError('Les mots de passe ne correspondent pas');
-      return;
-    }
-
-    if (password.length < 6) {
-      setError('Le mot de passe doit contenir au moins 6 caractères');
-      return;
-    }
-
     setLoading(true);
 
     try {
-      await signUp(email, password, name);
+      await signUp(email, password, sanitizedName);
       toast.success('Compte créé avec succès !');
       
       // Attendre un court instant pour que l'auth se propage
@@ -62,9 +130,11 @@ export default function SignupPage() {
       if (error.code === 'auth/email-already-in-use') {
         errorMessage = 'Cet email est déjà utilisé';
       } else if (error.code === 'auth/weak-password') {
-        errorMessage = 'Le mot de passe est trop faible';
+        errorMessage = 'Le mot de passe est trop faible. Utilisez au moins 8 caractères avec majuscules, minuscules, chiffres et caractères spéciaux';
       } else if (error.code === 'auth/invalid-email') {
         errorMessage = 'Email invalide';
+      } else if (error.code === 'auth/network-request-failed') {
+        errorMessage = 'Erreur de connexion. Vérifiez votre connexion internet';
       }
       
       setError(errorMessage);
@@ -132,7 +202,13 @@ export default function SignupPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
+                  aria-invalid={!!fieldErrors.name}
+                  aria-describedby={fieldErrors.name ? 'name-error' : undefined}
+                  className={fieldErrors.name ? 'border-red-500' : ''}
                 />
+                {fieldErrors.name && (
+                  <p id="name-error" className="text-sm text-red-600">{fieldErrors.name}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -144,7 +220,13 @@ export default function SignupPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  aria-invalid={!!fieldErrors.email}
+                  aria-describedby={fieldErrors.email ? 'email-error' : undefined}
+                  className={fieldErrors.email ? 'border-red-500' : ''}
                 />
+                {fieldErrors.email && (
+                  <p id="email-error" className="text-sm text-red-600">{fieldErrors.email}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -154,10 +236,40 @@ export default function SignupPage() {
                   type="password"
                   placeholder="••••••••"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => handlePasswordChange(e.target.value)}
                   required
-                  minLength={6}
+                  minLength={8}
+                  aria-invalid={!!fieldErrors.password}
+                  aria-describedby={fieldErrors.password ? 'password-error' : undefined}
+                  className={fieldErrors.password ? 'border-red-500' : ''}
                 />
+                {passwordStrength && (
+                  <div className="flex items-center gap-2 mt-1">
+                    <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full transition-all ${
+                          passwordStrength === 'weak' ? 'bg-red-500 w-1/3' :
+                          passwordStrength === 'medium' ? 'bg-yellow-500 w-2/3' :
+                          'bg-green-500 w-full'
+                        }`}
+                      />
+                    </div>
+                    <span className={`text-xs font-medium ${
+                      passwordStrength === 'weak' ? 'text-red-600' :
+                      passwordStrength === 'medium' ? 'text-yellow-600' :
+                      'text-green-600'
+                    }`}>
+                      {passwordStrength === 'weak' ? 'Faible' :
+                       passwordStrength === 'medium' ? 'Moyen' : 'Fort'}
+                    </span>
+                  </div>
+                )}
+                {fieldErrors.password && (
+                  <p id="password-error" className="text-sm text-red-600">{fieldErrors.password}</p>
+                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  Au moins 8 caractères avec majuscules, minuscules, chiffres et caractères spéciaux
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -169,7 +281,13 @@ export default function SignupPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
+                  aria-invalid={!!fieldErrors.confirmPassword}
+                  aria-describedby={fieldErrors.confirmPassword ? 'confirmPassword-error' : undefined}
+                  className={fieldErrors.confirmPassword ? 'border-red-500' : ''}
                 />
+                {fieldErrors.confirmPassword && (
+                  <p id="confirmPassword-error" className="text-sm text-red-600">{fieldErrors.confirmPassword}</p>
+                )}
               </div>
 
               {/* Consentement RGPD */}
@@ -197,23 +315,7 @@ export default function SignupPage() {
               </div>
 
               {/* Message d'erreur */}
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="bg-red-50 border-2 border-red-500 rounded-lg p-4 flex items-start gap-3"
-                >
-                  <div className="flex-shrink-0">
-                    <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-red-800 font-bold text-base mb-1">Erreur</h3>
-                    <p className="text-red-700 text-sm">{error}</p>
-                  </div>
-                </motion.div>
-              )}
+              <ErrorMessage error={error || fieldErrors} onDismiss={() => { setError(''); setFieldErrors({}); }} />
 
               <Button
                 type="submit"

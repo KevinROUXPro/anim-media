@@ -120,3 +120,51 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Accessibilité - Navigation au clavier */
+.keyboard-navigation *:focus {
+  outline: 2px solid #00A8A8;
+  outline-offset: 2px;
+}
+
+.keyboard-navigation *:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Respecter les préférences de réduction de mouvement */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Masquer visuellement mais garder accessible pour les lecteurs d'écran */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Améliorer le contraste pour les liens */
+a:focus-visible {
+  outline: 2px solid #00A8A8;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Améliorer la visibilité des boutons au focus */
+button:focus-visible {
+  outline: 2px solid #00A8A8;
+  outline-offset: 2px;
+}
