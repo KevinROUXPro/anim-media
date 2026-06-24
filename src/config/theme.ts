@@ -36,13 +36,13 @@ export const APP_COLORS = {
 // Classes Tailwind personnalisées (à configurer dans tailwind.config.ts)
 export const THEME_CLASSES = {
   // Headers et sections importantes
-  headerGradient: 'bg-gradient-to-r from-[#DE3156] via-[#F49928] to-[#00A8A8]',
-  heroGradient: 'bg-gradient-to-br from-[#DE3156] via-[#F49928] to-[#00A8A8]',
+  headerGradient: 'bg-gradient-to-r from-[#DE3156]/90 via-[#F49928]/90 to-[#00A8A8]/90 backdrop-blur-md',
+  heroGradient: 'bg-[#FAF9F6]',
   
   // Boutons
-  buttonPrimary: 'bg-gradient-to-r from-[#DE3156] to-[#F49928] hover:from-[#b82745] hover:to-[#d67d1a]',
-  buttonSecondary: 'bg-[#00A8A8] hover:bg-[#008989]',
-  buttonAccent: 'bg-[#F49928] hover:bg-[#d67d1a]',
+  buttonPrimary: 'bg-[#DE3156] hover:bg-[#c12547] text-white shadow-md shadow-[#DE3156]/10 hover:shadow-lg hover:shadow-[#DE3156]/20 rounded-xl transition-all duration-300 font-semibold',
+  buttonSecondary: 'bg-[#00A8A8] hover:bg-[#008989] text-white shadow-md shadow-[#00A8A8]/10 hover:shadow-lg hover:shadow-[#00A8A8]/20 rounded-xl transition-all duration-300 font-semibold',
+  buttonAccent: 'bg-[#F49928] hover:bg-[#d67d1a] text-white shadow-md shadow-[#F49928]/10 hover:shadow-lg hover:shadow-[#F49928]/20 rounded-xl transition-all duration-300 font-semibold',
   
   // Texte et liens
   textGradient: 'bg-gradient-to-r from-[#DE3156] via-[#F49928] to-[#00A8A8] bg-clip-text text-transparent',
@@ -56,16 +56,16 @@ export const THEME_CLASSES = {
   linkSecondary: 'hover:text-[#00A8A8]',
   
   // Backgrounds
-  bgLight: 'bg-[#F7EDE0]',
-  bgLightSubtle: 'bg-[#F7EDE0]/30',
+  bgLight: 'bg-[#FAF9F6]',
+  bgLightSubtle: 'bg-[#FAF9F6]/50',
   bgPrimary: 'bg-[#DE3156]',
   bgSecondary: 'bg-[#00A8A8]',
   bgAccent: 'bg-[#F49928]',
   
   // Cartes et sections
-  cardHover: 'hover:shadow-xl hover:shadow-[#DE3156]/20',
-  sectionEvents: 'bg-gradient-to-br from-[#DE3156]/10 to-[#F49928]/10',
-  sectionWorkshops: 'bg-gradient-to-br from-[#00A8A8]/10 to-[#00C2CB]/10',
+  cardHover: 'card-premium card-premium-hover',
+  sectionEvents: 'bg-gradient-to-br from-[#DE3156]/5 to-[#F49928]/5 border border-red-500/5',
+  sectionWorkshops: 'bg-gradient-to-br from-[#00A8A8]/5 to-[#00C2CB]/5 border border-cyan-500/5',
   
   // Borders
   borderPrimary: 'border-[#DE3156]',

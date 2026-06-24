@@ -24,6 +24,14 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: '**.imgur.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'imgs.search.brave.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.freepik.com',
+      },
     ],
     // Optimisation des images
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],

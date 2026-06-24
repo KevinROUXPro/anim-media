@@ -25,10 +25,20 @@ import {
 } from '@/lib/animations';
 
 export default function Home() {
+  const pageRef = React.useRef<HTMLDivElement>(null);
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 });
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
   const [upcomingWorkshops, setUpcomingWorkshops] = useState<Workshop[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const handleMouseMove = React.useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!pageRef.current) return;
+    const rect = pageRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    pageRef.current.style.setProperty('--mouse-x', `${x}px`);
+    pageRef.current.style.setProperty('--mouse-y', `${y}px`);
+  }, []);
 
   // Fonction pour récupérer les activités avec cache
   const fetchUpcomingActivities = useCallback(async () => {
@@ -154,102 +164,97 @@ export default function Home() {
   }, [fetchUpcomingActivities]);
 
   return (
-    <div className="min-h-screen">
+    <div 
+      ref={pageRef}
+      onMouseMove={handleMouseMove}
+      className="min-h-screen relative overflow-hidden bg-[#FAF9F6] group/page"
+    >
+      {/* Mouse spotlight glow tracker */}
+      <div 
+        className="absolute inset-0 opacity-0 group-hover/page:opacity-100 transition-opacity duration-700 pointer-events-none z-0"
+        style={{
+          background: `radial-gradient(
+            800px circle at var(--mouse-x, 0px) var(--mouse-y, 0px),
+            rgba(222, 49, 86, 0.05) 0%,
+            rgba(244, 153, 40, 0.03) 35%,
+            rgba(0, 168, 168, 0.05) 70%,
+            transparent 100%
+          )`,
+        }}
+      />
+
       {/* Hero Section */}
-      <section className={`relative ${THEME_CLASSES.heroGradient} text-white overflow-hidden min-h-[60vh] sm:min-h-[70vh] md:min-h-[80vh] flex items-center`}>
-        <div className="absolute inset-0 bg-black/20"></div>
+      <section className="relative bg-transparent text-gray-900 overflow-hidden min-h-[60vh] sm:min-h-[70vh] md:min-h-[80vh] flex items-center border-b border-gray-100/50 z-10">
         
-        {/* Animated background shapes with parallax effect */}
+        {/* Animated background shapes with brand colors (subtle opacity) */}
         <motion.div
           animate={{
-            scale: [1, 1.3, 1],
-            rotate: [0, 180, 360],
-            opacity: [0.3, 0.5, 0.3]
-          }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            ease: "linear"
-          }}
-          style={{
-            position: 'absolute',
-            top: '10%',
-            left: '10%',
-            width: '12rem',
-            height: '12rem'
-          }}
-          className="bg-white/10 rounded-full blur-3xl sm:w-64 sm:h-64 md:w-72 md:h-72"
-        />
-        <motion.div
-          animate={{
-            scale: [1, 1.4, 1],
-            rotate: [360, 180, 0],
-            opacity: [0.3, 0.6, 0.3],
-            x: [0, 50, 0],
-            y: [0, -30, 0]
+            scale: [1, 1.2, 1],
+            rotate: [0, 90, 180, 270, 360],
+            opacity: [0.08, 0.15, 0.08]
           }}
           transition={{
             duration: 25,
             repeat: Infinity,
             ease: "linear"
           }}
-          style={{
-            position: 'absolute',
-            bottom: '10%',
-            right: '10%',
-            width: '16rem',
-            height: '16rem'
-          }}
-          className="bg-white/10 rounded-full blur-3xl sm:w-80 sm:h-80 md:w-96 md:h-96"
+          className="absolute top-[10%] left-[8%] w-72 h-72 bg-[#DE3156] rounded-full blur-3xl sm:w-96 sm:h-96"
         />
         <motion.div
           animate={{
-            scale: [1, 1.2, 1],
-            x: [0, 100, 0],
-            y: [0, -50, 0],
-            opacity: [0.2, 0.4, 0.2],
-            rotate: [0, 90, 0]
+            scale: [1, 1.3, 1],
+            rotate: [360, 270, 180, 90, 0],
+            opacity: [0.08, 0.18, 0.08],
+            x: [0, 30, 0],
+            y: [0, -30, 0]
           }}
           transition={{
-            duration: 15,
+            duration: 30,
+            repeat: Infinity,
+            ease: "linear"
+          }}
+          className="absolute bottom-[10%] right-[8%] w-96 h-96 bg-[#00A8A8] rounded-full blur-3xl sm:w-[32rem] sm:h-[32rem]"
+        />
+        <motion.div
+          animate={{
+            scale: [1, 1.15, 1],
+            x: [0, 40, 0],
+            y: [0, -20, 0],
+            opacity: [0.05, 0.12, 0.05]
+          }}
+          transition={{
+            duration: 20,
             repeat: Infinity,
             ease: "easeInOut"
           }}
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '33.33%',
-            width: '16rem',
-            height: '16rem'
-          }}
-          className="bg-white/10 rounded-full blur-2xl"
+          className="absolute top-[40%] left-[35%] w-80 h-80 bg-[#F49928] rounded-full blur-3xl"
         />
         
         {/* Floating particles */}
-        {[...Array(8)].map((_, i) => (
+        {[...Array(6)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute w-2 h-2 bg-white/30 rounded-full"
+            className="absolute w-1.5 h-1.5 bg-[#DE3156]/20 rounded-full"
             animate={{
-              y: [0, -100, 0],
-              x: [0, (i % 2 === 0 ? 25 : -25), 0],
-              opacity: [0, 1, 0],
-              scale: [0, 1, 0]
+              y: [0, -80, 0],
+              x: [0, (i % 2 === 0 ? 15 : -15), 0],
+              opacity: [0, 0.6, 0],
+              scale: [0.5, 1, 0.5]
             }}
             transition={{
-              duration: 5 + (i * 0.5),
+              duration: 6 + (i * 0.8),
               repeat: Infinity,
-              delay: i * 0.5,
+              delay: i * 0.6,
               ease: "easeInOut"
             }}
             style={{
-              left: `${10 + i * 10}%`,
-              top: `${30 + (i * 5) % 40}%`
+              left: `${15 + i * 15}%`,
+              top: `${40 + (i * 6) % 30}%`
             }}
           />
         ))}
         
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 md:py-24 lg:py-32 w-full">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 md:py-28 lg:py-32 w-full">
           <motion.div
             variants={staggerContainer}
             initial="hidden"
@@ -258,19 +263,19 @@ export default function Home() {
           >
             <motion.h1
               variants={bounceIn}
-              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold mb-4 sm:mb-6 px-2"
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black mb-6 px-2 tracking-tight text-zinc-900"
             >
-              <motion.span
-                className="inline-block"
+              <motion.span 
+                className={THEME_CLASSES.textGradient}
                 animate={{ 
-                  textShadow: [
-                    "0 0 20px rgba(255,255,255,0.5)",
-                    "0 0 40px rgba(255,255,255,0.8)",
-                    "0 0 20px rgba(255,255,255,0.5)"
+                  filter: [
+                    "drop-shadow(0 0 0px rgba(222, 49, 86, 0))",
+                    "drop-shadow(0 4px 16px rgba(222, 49, 86, 0.12))",
+                    "drop-shadow(0 0 0px rgba(222, 49, 86, 0))"
                   ]
                 }}
                 transition={{
-                  duration: 3,
+                  duration: 4,
                   repeat: Infinity,
                   ease: "easeInOut"
                 }}
@@ -280,25 +285,25 @@ export default function Home() {
             </motion.h1>
             <motion.p
               variants={textReveal}
-              className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl mb-8 sm:mb-12 max-w-4xl mx-auto font-light px-4"
+              className="text-base sm:text-lg md:text-xl lg:text-2xl mb-12 max-w-3xl mx-auto font-medium text-zinc-600 px-4 leading-relaxed"
             >
-              Découvrez nos activités culturelles : tricot, lecture, écriture, généalogie, informatique et bien plus encore !
+              Découvrez nos activités culturelles et créatives : tricot, lecture, écriture, généalogie, informatique et bien plus encore !
             </motion.p>
             <motion.div
               variants={fadeInUp}
-              className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center px-4"
+              className="flex flex-col sm:flex-row gap-5 justify-center px-4"
             >
               <Link href="/evenements" className="w-full sm:w-auto">
                 <motion.div 
                   whileHover={{ 
-                    scale: 1.1,
-                    boxShadow: "0 20px 40px rgba(222, 49, 86, 0.4)"
+                    scale: 1.08,
+                    boxShadow: "0 20px 40px rgba(222, 49, 86, 0.22)"
                   }} 
                   whileTap={{ scale: 0.95 }}
-                  transition={{ duration: 0.3, type: "spring" as const, stiffness: 400 }}
-                  className="w-full sm:w-auto"
+                  transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                  className="w-full sm:w-auto rounded-xl"
                 >
-                  <Button size="lg" variant="secondary" className="w-full text-lg sm:text-xl px-8 sm:px-10 py-6 sm:py-8 font-bold">
+                  <Button size="lg" className={`${THEME_CLASSES.buttonPrimary} w-full text-base px-8 py-6 h-auto`}>
                     🎉 Voir les Événements
                   </Button>
                 </motion.div>
@@ -306,14 +311,14 @@ export default function Home() {
               <Link href="/ateliers" className="w-full sm:w-auto">
                 <motion.div 
                   whileHover={{ 
-                    scale: 1.1,
-                    boxShadow: "0 20px 40px rgba(0, 168, 168, 0.4)"
+                    scale: 1.08,
+                    boxShadow: "0 20px 40px rgba(0, 168, 168, 0.15)"
                   }} 
                   whileTap={{ scale: 0.95 }}
-                  transition={{ duration: 0.3, type: "spring" as const, stiffness: 400 }}
-                  className="w-full sm:w-auto"
+                  transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                  className="w-full sm:w-auto rounded-xl"
                 >
-                  <Button size="lg" variant="outline" className="w-full text-lg sm:text-xl px-8 sm:px-10 py-6 sm:py-8 bg-white/10 hover:bg-white/20 border-2 border-white text-white font-bold">
+                  <Button size="lg" variant="outline" className="w-full text-base px-8 py-6 h-auto bg-white/50 border border-gray-200 text-zinc-800 hover:bg-white/90 font-semibold rounded-xl transition-all duration-200">
                     🎨 Découvrir les Ateliers
                   </Button>
                 </motion.div>
@@ -324,66 +329,45 @@ export default function Home() {
       </section>
 
       {/* Prochaines Activités */}
-      <section ref={ref} className="py-12 sm:py-16 md:py-20 bg-[#F7EDE0]/30">
+      <section ref={ref} className="py-16 sm:py-20 md:py-24 bg-transparent relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             variants={fadeInUp}
             initial="hidden"
             animate={inView ? "visible" : "hidden"}
-            className="text-center mb-12 sm:mb-16"
+            className="text-center mb-16"
           >
             <motion.h2 
-              className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 ${THEME_CLASSES.textGradient} px-2`}
-              animate={{
-                backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
-              }}
-              transition={{
-                duration: 5,
-                repeat: Infinity,
-                ease: "linear"
-              }}
+              className={`text-3xl sm:text-4xl md:text-5xl font-black mb-4 ${THEME_CLASSES.textGradient} px-2`}
             >
               Prochaines Activités
             </motion.h2>
-            <motion.p 
-              className="text-gray-700 text-lg sm:text-xl font-medium px-4"
-              variants={textReveal}
-            >
+            <p className="text-zinc-600 text-lg font-medium px-4">
               ✨ Ne manquez pas nos événements et ateliers à venir !
-            </motion.p>
+            </p>
           </motion.div>
 
           {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
               {Array.from({ length: 3 }).map((_, i) => (
                 <EventCardSkeleton key={i} />
               ))}
             </div>
           ) : (
-            <div className="space-y-16">
+            <div className="space-y-20">
               {/* Événements */}
               {upcomingEvents.length > 0 && (
                 <div>
                   <motion.h3 
-                    className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 flex items-center gap-2 sm:gap-3 px-2"
-                    initial={{ opacity: 0, x: -50 }}
+                    className="text-xl sm:text-2xl font-extrabold mb-8 flex items-center gap-3 px-2"
+                    initial={{ opacity: 0, x: -30 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.6 }}
+                    transition={{ duration: 0.5 }}
                   >
-                    <motion.span
-                      animate={{ y: [-10, 10, -10] }}
-                      transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                        ease: "easeInOut" as const
-                      }}
-                      className="text-4xl sm:text-5xl"
-                    >
-                      🎉
-                    </motion.span>
-                    <span className={THEME_CLASSES.textPrimary}>Événements à venir</span>
+                    <span className="text-3xl">🎉</span>
+                    <span className="text-zinc-800">Événements à venir</span>
                   </motion.h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                     {upcomingEvents.map((event, index) => (
                       <ActivityCard
                         key={event.id}
@@ -406,28 +390,15 @@ export default function Home() {
               {upcomingWorkshops.length > 0 && (
                 <div>
                   <motion.h3 
-                    className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 flex items-center gap-2 sm:gap-3 px-2"
-                    initial={{ opacity: 0, x: 50 }}
+                    className="text-xl sm:text-2xl font-extrabold mb-8 flex items-center gap-3 px-2"
+                    initial={{ opacity: 0, x: -30 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.6 }}
+                    transition={{ duration: 0.5 }}
                   >
-                    <motion.span
-                      animate={{ 
-                        rotate: [0, 10, -10, 0],
-                        scale: [1, 1.1, 1]
-                      }}
-                      transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                      }}
-                      className="text-4xl sm:text-5xl"
-                    >
-                      🎨
-                    </motion.span>
-                    <span className={THEME_CLASSES.textSecondary}>Ateliers à venir</span>
+                    <span className="text-3xl">🎨</span>
+                    <span className="text-zinc-800">Ateliers à venir</span>
                   </motion.h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                     {upcomingWorkshops.map((workshop, index) => (
                       <WorkshopCard
                         key={workshop.id}
@@ -441,7 +412,7 @@ export default function Home() {
               )}
 
               {upcomingEvents.length === 0 && upcomingWorkshops.length === 0 && (
-                <p className="text-center text-gray-500 text-xl">
+                <p className="text-center text-zinc-500 text-lg py-12">
                   Aucune activité prévue pour le moment. Revenez bientôt !
                 </p>
               )}
@@ -454,161 +425,94 @@ export default function Home() {
       <MembershipCTA />
 
       {/* Section À propos */}
-      <section className="py-12 sm:py-16 md:py-20 bg-white">
+      <section className="py-20 sm:py-24 bg-transparent border-t border-gray-100/40 relative z-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="text-center mb-12"
+            transition={{ duration: 0.6 }}
+            className="text-center mb-16"
           >
-            <h2 className={`text-3xl sm:text-4xl md:text-5xl font-bold mb-6 ${THEME_CLASSES.textGradient}`}>
+            <h2 className={`text-3xl sm:text-4xl md:text-5xl font-black mb-4 ${THEME_CLASSES.textGradient}`}>
               {"À propos d'Anim'Média"}
             </h2>
-            <div className="h-1 w-24 bg-gradient-to-r from-[#DE3156] to-[#F49928] mx-auto rounded-full mb-8"></div>
+            <div className="h-1.5 w-16 bg-gradient-to-r from-[#DE3156] to-[#F49928] mx-auto rounded-full"></div>
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-            className="grid md:grid-cols-2 gap-8 items-center mb-12"
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="grid md:grid-cols-2 gap-12 items-center mb-16"
           >
-            <div className="space-y-6 text-lg text-gray-700">
+            <div className="space-y-6 text-zinc-600 text-base sm:text-lg">
               <p className="leading-relaxed">
-                <strong className={THEME_CLASSES.textPrimary}>{"Anim'Média"}</strong> est une association dynamique dédiée à la promotion des activités culturelles et créatives pour tous les âges.
+                <strong className={THEME_CLASSES.textPrimary}>{"Anim'Média"}</strong> est une association culturelle qui favorise le partage des passions et des connaissances pour tous les âges.
               </p>
               <p className="leading-relaxed">
-                Notre mission est de créer un espace de partage, d&apos;apprentissage et de convivialité à travers des ateliers réguliers et des événements ponctuels variés.
+                Notre mission est de créer du lien social et d&apos;animer la vie locale à travers des ateliers d&apos;apprentissage réguliers et des événements thématiques conviviaux.
               </p>
-              <p className="leading-relaxed">
-                Du <strong>tricot</strong> à l&apos;<strong>informatique</strong>, de la <strong>lecture</strong> à la <strong>généalogie</strong>, nous proposons des activités pour tous les goûts et tous les niveaux !
+              <p className="leading-relaxed font-semibold text-zinc-800">
+                Du tricot à l&apos;informatique, de la lecture à la généalogie, découvrez des activités pour tous les goûts !
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 sm:gap-6">
               {[
-                { icon: '🎨', color: '#DE3156', value: '10+', label: 'Ateliers réguliers', delay: 0 },
-                { icon: '🎭', color: '#F49928', value: '20+', label: 'Événements par an', delay: 0.1 },
-                { icon: '👥', color: '#00A8A8', value: '100+', label: 'Membres actifs', delay: 0.2 },
-                { icon: '❤️', color: '#9333EA', value: '100%', label: 'Passion', delay: 0.3 }
+                { icon: '🎨', color: '#DE3156', value: '10+', label: 'Ateliers réguliers' },
+                { icon: '🎭', color: '#F49928', value: '20+', label: 'Événements par an' },
+                { icon: '👥', color: '#00A8A8', value: '100+', label: 'Membres actifs' },
+                { icon: '❤️', color: '#DE3156', value: '100%', label: 'Convivialité' }
               ].map((stat, index) => (
                 <motion.div
                   key={index}
-                  initial={{ opacity: 0, scale: 0.5 }}
+                  initial={{ opacity: 0, scale: 0.95 }}
                   whileInView={{ opacity: 1, scale: 1 }}
                   viewport={{ once: true }}
-                  transition={{ 
-                    duration: 0.5, 
-                    delay: stat.delay,
-                    type: "spring",
-                    stiffness: 200
-                  }}
-                  whileHover={{ 
-                    scale: 1.1, 
-                    y: -10,
-                    rotate: [0, -5, 5, 0],
-                    transition: { duration: 0.3 }
-                  }}
-                  className="bg-gradient-to-br p-6 rounded-2xl border-2 cursor-pointer"
-                  style={{
-                    backgroundImage: `linear-gradient(to bottom right, ${stat.color}10, ${stat.color}05)`,
-                    borderColor: `${stat.color}20`
-                  }}
+                  transition={{ duration: 0.4, delay: index * 0.05 }}
+                  whileHover={{ y: -6 }}
+                  className="bg-zinc-50/50 p-6 rounded-2xl border border-zinc-100 hover:border-zinc-200/80 transition-all duration-300 shadow-sm"
                 >
-                  <motion.div 
-                    className="text-4xl mb-3"
-                    animate={{
-                      rotate: [0, 10, -10, 0],
-                      scale: [1, 1.1, 1]
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                      delay: index * 0.2
-                    }}
-                  >
-                    {stat.icon}
-                  </motion.div>
-                  <div className="text-2xl font-bold mb-1" style={{ color: stat.color }}>
-                    {stat.value}
-                  </div>
-                  <div className="text-sm text-gray-600">{stat.label}</div>
+                  <div className="text-3xl mb-3">{stat.icon}</div>
+                  <div className="text-3xl font-black mb-1 text-zinc-950">{stat.value}</div>
+                  <div className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">{stat.label}</div>
                 </motion.div>
               ))}
             </div>
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="bg-gradient-to-r from-[#F7EDE0] to-[#F7EDE0]/50 rounded-3xl p-8 text-center relative overflow-hidden"
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="bg-[#FAF9F6] border border-gray-100 rounded-3xl p-8 sm:p-12 relative overflow-hidden"
           >
-            {/* Effet de particules en arrière-plan */}
-            {[...Array(5)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute w-20 h-20 rounded-full bg-gradient-to-br from-[#DE3156]/10 to-[#F49928]/10 blur-2xl"
-                animate={{
-                  x: [0, (i % 2 === 0 ? 50 : -50), 0],
-                  y: [0, (i % 3 === 0 ? 50 : -50), 0],
-                  scale: [1, 1.2, 1],
-                  opacity: [0.3, 0.6, 0.3]
-                }}
-                transition={{
-                  duration: 5 + (i * 0.6),
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  delay: i * 0.5
-                }}
-                style={{
-                  left: `${20 * i}%`,
-                  top: `${30 + (i * 8) % 40}%`
-                }}
-              />
-            ))}
+            {/* Soft decorative blur circles */}
+            <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-[#00A8A8]/5 blur-2xl"></div>
+            <div className="absolute bottom-0 left-0 w-32 h-32 rounded-full bg-[#DE3156]/5 blur-2xl"></div>
             
-            <h3 className="text-2xl font-bold mb-8 text-gray-800 relative z-10">Nos Valeurs</h3>
-            <div className="grid sm:grid-cols-3 gap-6 text-center relative z-10">
+            <h3 className="text-2xl font-extrabold mb-10 text-zinc-900 text-center relative z-10">Nos Valeurs Clés</h3>
+            <div className="grid sm:grid-cols-3 gap-8 text-center relative z-10">
               {[
-                { icon: '🤝', title: 'Partage', desc: 'Créer du lien social et favoriser les échanges', delay: 0.1 },
-                { icon: '🌟', title: 'Créativité', desc: 'Encourager l\'expression artistique et culturelle', delay: 0.2 },
-                { icon: '📚', title: 'Apprentissage', desc: 'Transmettre des savoir-faire et des connaissances', delay: 0.3 }
+                { icon: '🤝', title: 'Partage', desc: 'Favoriser les échanges de compétences et de savoirs.' },
+                { icon: '🌟', title: 'Créativité', desc: 'Encourager l\'expression culturelle et artistique.' },
+                { icon: '📚', title: 'Apprentissage', desc: 'Accompagner chacun dans ses découvertes à son rythme.' }
               ].map((value, index) => (
                 <motion.div
                   key={index}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 15 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: 0.4 + value.delay }}
-                  whileHover={{ 
-                    scale: 1.1,
-                    y: -10,
-                    transition: { duration: 0.2 }
-                  }}
+                  transition={{ duration: 0.4, delay: 0.2 + index * 0.08 }}
+                  whileHover={{ y: -4 }}
+                  className="space-y-3"
                 >
-                  <motion.div 
-                    className="text-5xl mb-3"
-                    animate={{
-                      rotate: [0, 10, -10, 0],
-                      scale: [1, 1.15, 1]
-                    }}
-                    transition={{
-                      duration: 3,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                      delay: index * 0.3
-                    }}
-                  >
-                    {value.icon}
-                  </motion.div>
-                  <h4 className="font-semibold text-lg mb-2">{value.title}</h4>
-                  <p className="text-gray-600 text-sm">{value.desc}</p>
+                  <div className="text-4xl mb-2 inline-block">{value.icon}</div>
+                  <h4 className="font-bold text-lg text-zinc-900">{value.title}</h4>
+                  <p className="text-zinc-500 text-sm leading-relaxed max-w-xs mx-auto">{value.desc}</p>
                 </motion.div>
               ))}
             </div>
@@ -619,7 +523,7 @@ export default function Home() {
   );
 }
 
-// Memoization du composant ActivityCard
+// Composant ActivityCard
 const ActivityCard = React.memo((props: {
   title: string;
   description: string;
@@ -634,117 +538,68 @@ const ActivityCard = React.memo((props: {
   const { title, description, date, category, location, href, imageUrl, delay } = props;
   const categoryInfo = CATEGORY_LABELS[category];
 
-  // Mémoriser le formatage de la date
   const formattedDate = useMemo(() => {
     return format(date, "d MMMM yyyy 'à' HH:mm", { locale: fr });
   }, [date]);
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: delay }}
+      transition={{ duration: 0.4, delay: delay }}
+      className="h-full"
     >
-      <Link href={href}>
+      <Link href={href} className="block h-full">
         <motion.div
           whileHover={{ 
             scale: 1.05, 
             y: -10,
-            rotateZ: 2,
-            boxShadow: "0 20px 40px rgba(222, 49, 86, 0.3)"
+            rotateZ: 1.5,
+            boxShadow: "0 25px 50px -12px rgba(222, 49, 86, 0.15)"
           }}
           whileTap={{ scale: 0.98 }}
           transition={{ 
-            duration: 0.3,
-            type: "spring" as const,
-            stiffness: 300
+            type: "spring",
+            stiffness: 300,
+            damping: 18
           }}
+          className="card-premium h-full overflow-hidden flex flex-col p-0 cursor-pointer border-transparent hover:border-[#DE3156]/20 bg-white"
         >
-          <motion.div
-            animate={{
-              y: [0, -5, 0]
-            }}
-            transition={{
-              duration: 3,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: delay
-            }}
-          >
-            <Card className={`h-full transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-[#DE3156]/50 ${THEME_CLASSES.cardHover} bg-white/90 backdrop-blur-sm overflow-hidden relative group p-0`}>
-              {/* Effet de brillance au survol */}
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                initial={{ x: '-100%' }}
-                whileHover={{ x: '100%' }}
-                transition={{ duration: 0.6 }}
+          {imageUrl && (
+            <div className="relative h-48 w-full overflow-hidden border-b border-zinc-100">
+              <OptimizedImage
+                src={imageUrl}
+                alt={title}
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                objectFit="cover"
               />
-            {imageUrl && (
-              <div className="relative h-48 w-full overflow-hidden">
-                <motion.div
-                  whileHover={{ scale: 1.1 }}
-                  transition={{ duration: 0.3 }}
-                  className="h-full w-full"
-                >
-                  <OptimizedImage
-                    src={imageUrl}
-                    alt={title}
-                    fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    objectFit="cover"
-                  />
-                </motion.div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-                <div className="absolute bottom-2 left-2 right-2 flex items-center gap-2 z-10">
-                  <motion.span 
-                    className="text-2xl"
-                    animate={{
-                      rotate: [0, 10, -10, 0],
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
-                  >
-                    {categoryInfo.icon}
-                  </motion.span>
-                  <span className="text-xs font-semibold text-white uppercase tracking-wide drop-shadow-lg">{categoryInfo.label}</span>
-                </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
+              <div className="absolute bottom-3 left-3 flex items-center gap-2">
+                <span className="text-xl bg-white/95 backdrop-blur-sm rounded-full w-8 h-8 flex items-center justify-center shadow-sm">
+                  {categoryInfo.icon}
+                </span>
+                <span className="text-xs font-semibold text-white drop-shadow-md uppercase tracking-wider">{categoryInfo.label}</span>
+              </div>
+            </div>
+          )}
+          <div className="p-6 flex flex-col flex-grow">
+            {!imageUrl && (
+              <div className="flex items-center gap-2 mb-3">
+                <span className="badge-subtle-primary">
+                  {categoryInfo.icon} {categoryInfo.label}
+                </span>
               </div>
             )}
-            <CardHeader className={imageUrl ? "pt-6" : ""}>
-              {!imageUrl && (
-                <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
-                  <motion.span 
-                    className="text-3xl sm:text-4xl"
-                    animate={{
-                      rotate: [0, 10, -10, 0],
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
-                  >
-                    {categoryInfo.icon}
-                  </motion.span>
-                  <span className="text-xs sm:text-sm font-semibold text-gray-600 uppercase tracking-wide">{categoryInfo.label}</span>
-                </div>
-              )}
-              <CardTitle className="text-xl sm:text-2xl font-bold">{title}</CardTitle>
-              <CardDescription className="text-sm sm:text-base">
-                📅 {formattedDate}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pb-6">
-              <p className="text-gray-700 mb-3 sm:mb-4 line-clamp-2 text-sm sm:text-base">{description}</p>
-              <p className="text-xs sm:text-sm font-medium text-gray-600 flex items-center gap-2">
-                📍 {location}
-              </p>
-            </CardContent>
-          </Card>
-          </motion.div>
+            <h4 className="text-lg font-bold text-zinc-950 mb-1.5 line-clamp-1">{title}</h4>
+            <p className="text-xs font-semibold text-zinc-500 mb-4">
+              📅 {formattedDate}
+            </p>
+            <p className="text-zinc-600 text-sm mb-6 line-clamp-2 flex-grow">{description}</p>
+            <div className="pt-4 border-t border-zinc-100/80 text-xs font-medium text-zinc-500 flex items-center gap-1.5">
+              📍 {location}
+            </div>
+          </div>
         </motion.div>
       </Link>
     </motion.div>
@@ -765,8 +620,7 @@ const ActivityCard = React.memo((props: {
 
 ActivityCard.displayName = 'ActivityCard';
 
-
-// Memoization du composant WorkshopCard pour la page d'accueil
+// Composant WorkshopCard
 const WorkshopCard = React.memo((props: {
   workshop: Workshop;
   delay: number;
@@ -775,13 +629,11 @@ const WorkshopCard = React.memo((props: {
   const { workshop, delay } = props;
   const categoryInfo = CATEGORY_LABELS[workshop.category];
 
-  // Mémoriser le calcul de la prochaine séance
   const nextSession = useMemo(() => {
     if (!workshop.isRecurring) {
       return workshop.startDate && workshop.startDate > new Date() ? workshop.startDate : null;
     }
     
-    // Vérifier le cache
     const cacheKey = CacheKeys.nextSession(workshop.id);
     const cached = cache.get<Date | null>(cacheKey);
     if (cached !== null) return cached;
@@ -795,9 +647,7 @@ const WorkshopCard = React.memo((props: {
       workshop.cancellationPeriods
     );
     
-    // Mettre en cache
     cache.set(cacheKey, session, 60 * 60 * 1000);
-    
     return session;
   }, [
     workshop.isRecurring,
@@ -811,130 +661,80 @@ const WorkshopCard = React.memo((props: {
     workshop.cancellationPeriods,
   ]);
 
-  // Mémoriser le formatage de l'horaire
   const scheduleText = useMemo(() => {
     if (workshop.isRecurring && workshop.recurrenceDays) {
-      return `📅 ${workshop.recurrenceDays
+      return `📅 Chaque ${workshop.recurrenceDays
         .map(day => ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'][day])
-        .join(', ')} ${workshop.startTime || '14:00'}-${workshop.endTime || '16:00'}`;
+        .join(', ')} à ${workshop.startTime || '14:00'}`;
     }
     return nextSession
-      ? `📅 ${format(nextSession, "d MMMM yyyy 'à' HH:mm", { locale: fr })}`
+      ? `📅 Le ${format(nextSession, "d MMMM yyyy 'à' HH:mm", { locale: fr })}`
       : '📅 Dates à venir';
-  }, [workshop.isRecurring, workshop.recurrenceDays, workshop.startTime, workshop.endTime, nextSession]);
-
+  }, [workshop.isRecurring, workshop.recurrenceDays, workshop.startTime, nextSession]);
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: delay }}
+      transition={{ duration: 0.4, delay: delay }}
+      className="h-full"
     >
-      <Link href={`/ateliers/${workshop.id}`}>
+      <Link href={`/ateliers/${workshop.id}`} className="block h-full">
         <motion.div
           whileHover={{ 
             scale: 1.05, 
             y: -10,
-            rotateZ: 2,
-            boxShadow: "0 20px 40px rgba(0, 168, 168, 0.3)"
+            rotateZ: -1.5,
+            boxShadow: "0 25px 50px -12px rgba(0, 168, 168, 0.15)"
           }}
           whileTap={{ scale: 0.98 }}
           transition={{ 
-            duration: 0.3,
-            type: "spring" as const,
-            stiffness: 300
+            type: "spring",
+            stiffness: 300,
+            damping: 18
           }}
+          className="card-premium h-full overflow-hidden flex flex-col p-0 cursor-pointer border-transparent hover:border-[#00A8A8]/20 bg-white"
         >
-          <motion.div
-            animate={{
-              y: [0, -5, 0]
-            }}
-            transition={{
-              duration: 3,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: delay
-            }}
-          >
-            <Card className={`h-full transition-all duration-300 cursor-pointer border-2 border-transparent hover:border-[#DE3156]/50 ${THEME_CLASSES.cardHover} bg-white/90 backdrop-blur-sm overflow-hidden relative group p-0`}>
-              {/* Effet de brillance au survol */}
-              <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                initial={{ x: '-100%' }}
-                whileHover={{ x: '100%' }}
-                transition={{ duration: 0.6 }}
+          {workshop.imageUrl && (
+            <div className="relative h-48 w-full overflow-hidden border-b border-zinc-100">
+              <OptimizedImage
+                src={workshop.imageUrl}
+                alt={workshop.title}
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                objectFit="cover"
               />
-            {workshop.imageUrl && (
-              <div className="relative h-48 w-full overflow-hidden">
-                <motion.div
-                  whileHover={{ scale: 1.1 }}
-                  transition={{ duration: 0.3 }}
-                  className="h-full w-full"
-                >
-                  <OptimizedImage
-                    src={workshop.imageUrl}
-                    alt={workshop.title}
-                    fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    objectFit="cover"
-                  />
-                </motion.div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-                <div className="absolute bottom-2 left-2 right-2 flex items-center gap-2 z-10">
-                  <motion.span 
-                    className="text-2xl"
-                    animate={{
-                      rotate: [0, 10, -10, 0],
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
-                  >
-                    {categoryInfo.icon}
-                  </motion.span>
-                  <span className="text-xs font-semibold text-white uppercase tracking-wide drop-shadow-lg">{categoryInfo.label}</span>
-                </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
+              <div className="absolute bottom-3 left-3 flex items-center gap-2">
+                <span className="text-xl bg-white/95 backdrop-blur-sm rounded-full w-8 h-8 flex items-center justify-center shadow-sm">
+                  {categoryInfo.icon}
+                </span>
+                <span className="text-xs font-semibold text-white drop-shadow-md uppercase tracking-wider">{categoryInfo.label}</span>
+              </div>
+            </div>
+          )}
+          <div className="p-6 flex flex-col flex-grow">
+            {!workshop.imageUrl && (
+              <div className="flex items-center gap-2 mb-3">
+                <span className="badge-subtle-secondary">
+                  {categoryInfo.icon} {categoryInfo.label}
+                </span>
               </div>
             )}
-            <CardHeader className={workshop.imageUrl ? "pt-6" : ""}>
-              {!workshop.imageUrl && (
-                <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
-                  <motion.span 
-                    className="text-3xl sm:text-4xl"
-                    animate={{
-                      rotate: [0, 10, -10, 0],
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
-                  >
-                    {categoryInfo.icon}
-                  </motion.span>
-                  <span className="text-xs sm:text-sm font-semibold text-gray-600 uppercase tracking-wide">{categoryInfo.label}</span>
-                </div>
-              )}
-              <CardTitle className="text-xl sm:text-2xl font-bold">{workshop.title}</CardTitle>
-              <CardDescription className="text-sm sm:text-base">
-                {scheduleText}
-              </CardDescription>
-              {nextSession && (
-                <CardDescription className="text-xs sm:text-sm text-green-600 font-medium">
-                  ▶️ Prochain: {format(nextSession, "d MMM 'à' HH:mm", { locale: fr })}
-                </CardDescription>
-              )}
-            </CardHeader>
-            <CardContent className="pb-6">
-              <p className="text-gray-700 mb-3 sm:mb-4 line-clamp-2 text-sm sm:text-base">{workshop.description}</p>
-              <p className="text-xs sm:text-sm font-medium text-gray-600 flex items-center gap-2">
-                📍 {workshop.location}
+            <h4 className="text-lg font-bold text-zinc-950 mb-1.5 line-clamp-1">{workshop.title}</h4>
+            <p className="text-xs font-semibold text-zinc-500 mb-1">
+              {scheduleText}
+            </p>
+            {nextSession && (
+              <p className="text-xs text-emerald-600 font-semibold mb-4">
+                ▶️ Prochaine séance : {format(nextSession, "d MMM 'à' HH:mm", { locale: fr })}
               </p>
-            </CardContent>
-          </Card>
-          </motion.div>
+            )}
+            <p className="text-zinc-600 text-sm mb-6 line-clamp-2 flex-grow">{workshop.description}</p>
+            <div className="pt-4 border-t border-zinc-100/80 text-xs font-medium text-zinc-500 flex items-center gap-1.5">
+              📍 {workshop.location}
+            </div>
+          </div>
         </motion.div>
       </Link>
     </motion.div>
@@ -954,110 +754,93 @@ WorkshopCard.displayName = 'WorkshopCard';
 function MembershipCTA() {
   const { user } = useAuth();
 
-  // Ne pas afficher si l'utilisateur est déjà adhérent actif
   if (user?.membershipStatus === MembershipStatus.ACTIVE) {
     return null;
   }
 
   return (
-    <motion.section
-      className="py-12 sm:py-16 md:py-20 relative overflow-hidden"
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      viewport={{ once: true }}
-    >
-      {/* Background animé */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#DE3156] via-[#F49928] to-[#00A8A8]">
-        <motion.div
-          className="absolute inset-0 opacity-30"
-          animate={{
-            backgroundPosition: ['0% 0%', '100% 100%', '0% 0%'],
-          }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            ease: "linear"
-          }}
-          style={{
-            backgroundImage: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.4"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
-            backgroundSize: '60px 60px'
-          }}
-        />
-      </div>
-
+    <section className="py-20 sm:py-24 relative overflow-hidden bg-gradient-to-br from-[#DE3156] via-[#DE3156] to-[#F49928] text-white">
+      {/* Decorative patterns */}
+      <div 
+        className="absolute inset-0 opacity-10 bg-repeat bg-center"
+        style={{
+          backgroundImage: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath d="M54 48c-2 0-3 1-3 3s1 3 3 3 3-1 3-3-1-3-3-3zm-24 0c-2 0-3 1-3 3s1 3 3 3 3-1 3-3-1-3-3-3zm-24 0c-2 0-3 1-3 3s1 3 3 3 3-1 3-3-1-3-3-3zm12-24c-2 0-3 1-3 3s1 3 3 3 3-1 3-3-1-3-3-3zm24 0c-2 0-3 1-3 3s1 3 3 3 3-1 3-3-1-3-3-3zM18 12c-2 0-3 1-3 3s1 3 3 3 3-1 3-3-1-3-3-3zm24 0c-2 0-3 1-3 3s1 3 3 3 3-1 3-3-1-3-3-3z" fill="%23ffffff" fill-opacity="0.3" fill-rule="evenodd"/%3E%3C/svg%3E")',
+          backgroundSize: '40px 40px'
+        }}
+      />
+      
+      <div className="absolute top-1/2 left-1/4 w-[500px] h-[500px] rounded-full bg-white/5 blur-3xl -translate-y-1/2"></div>
+      
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <motion.div
-          className="text-center text-white"
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-        >
-          <motion.div variants={bounceIn}>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 px-2">
-              Rejoignez-nous ! 🎫
-            </h2>
-          </motion.div>
+        <div className="text-center space-y-8">
+          <motion.h2 
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="text-4xl sm:text-5xl font-black px-2 tracking-tight"
+          >
+            Rejoignez l&apos;aventure ! 🎫
+          </motion.h2>
           
-          <motion.p variants={fadeInUp} className="text-xl sm:text-2xl md:text-3xl mb-6 sm:mb-8 font-light px-4">
-            Devenez adhérent et profitez d&apos;avantages exclusifs
+          <motion.p 
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="text-lg sm:text-xl md:text-2xl font-medium max-w-2xl mx-auto opacity-95 px-4"
+          >
+            Devenez adhérent et profitez d&apos;avantages exclusifs sur toutes nos activités
           </motion.p>
 
           <motion.div 
-            variants={fadeInUp}
-            className="bg-white/20 backdrop-blur-md rounded-2xl p-6 sm:p-8 mb-6 sm:mb-8 border-2 border-white/40"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20 shadow-xl max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 text-left"
           >
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 text-left">
-              <div className="flex items-start gap-2 sm:gap-3">
-                <span className="text-2xl sm:text-3xl">🎟️</span>
-                <div>
-                  <h3 className="font-bold text-lg sm:text-xl mb-1">Accès prioritaire</h3>
-                  <p className="text-sm sm:text-base text-white/90">Inscriptions en avant-première</p>
-                </div>
+            {[
+              { icon: '🎟️', title: 'Accès prioritaire', desc: 'Inscrivez-vous en avant-première aux ateliers' },
+              { icon: '💰', title: 'Tarifs réduits', desc: 'Bénéficiez de réductions sur les grands événements' },
+              { icon: '🎁', title: 'Contenus exclusifs', desc: 'Participez à des ateliers réservés aux membres' }
+            ].map((adv, idx) => (
+              <div key={idx} className="space-y-2">
+                <div className="text-3xl">{adv.icon}</div>
+                <h3 className="font-bold text-lg text-white">{adv.title}</h3>
+                <p className="text-white/80 text-sm leading-relaxed">{adv.desc}</p>
               </div>
-              <div className="flex items-start gap-2 sm:gap-3">
-                <span className="text-2xl sm:text-3xl">💰</span>
-                <div>
-                  <h3 className="font-bold text-lg sm:text-xl mb-1">Tarifs réduits</h3>
-                  <p className="text-sm sm:text-base text-white/90">Sur les événements payants</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-2 sm:gap-3">
-                <span className="text-2xl sm:text-3xl">🎁</span>
-                <div>
-                  <h3 className="font-bold text-lg sm:text-xl mb-1">Contenus exclusifs</h3>
-                  <p className="text-sm sm:text-base text-white/90">Événements réservés</p>
-                </div>
-              </div>
-            </div>
+            ))}
           </motion.div>
 
           <motion.div
-            variants={fadeInUp}
-            className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center items-center px-4"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="flex flex-col sm:flex-row gap-6 justify-center items-center pt-4"
           >
-            <div className="text-center">
-              <div className="text-5xl sm:text-6xl font-bold mb-2">15€</div>
-              <div className="text-lg sm:text-xl opacity-90">par an</div>
+            <div className="text-center sm:text-left">
+              <div className="text-6xl font-black">15€</div>
+              <div className="text-xs font-semibold uppercase tracking-wider opacity-80 mt-1">par an</div>
             </div>
             
             <Link href={user ? "/adhesion" : "/login"} className="w-full sm:w-auto">
               <motion.div
-                whileHover={{ scale: 1.1, rotate: 2 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.98 }}
               >
                 <Button 
                   size="lg" 
-                  className="w-full bg-white text-[#DE3156] hover:bg-white/90 text-xl sm:text-2xl px-8 sm:px-12 py-6 sm:py-8 h-auto font-bold shadow-2xl"
+                  className="w-full bg-white text-[#DE3156] hover:bg-zinc-50 text-lg px-8 py-6 h-auto font-bold rounded-2xl shadow-xl shadow-black/10"
                 >
                   ✨ Adhérer Maintenant
                 </Button>
               </motion.div>
             </Link>
           </motion.div>
-        </motion.div>
+        </div>
       </div>
-    </motion.section>
+    </section>
   );
 }
-

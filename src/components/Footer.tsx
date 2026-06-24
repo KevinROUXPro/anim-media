@@ -7,26 +7,30 @@ export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="bg-gradient-to-r from-gray-800 to-gray-900 text-white mt-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <footer className="bg-zinc-950 border-t border-zinc-900/60 text-zinc-400 mt-24">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           {/* À propos */}
-          <div>
-            <h3 className="text-lg font-bold mb-4 text-[#F49928]">Anim&apos;Média La Guerche</h3>
-            <p className="text-gray-300 text-sm leading-relaxed">
-              Association culturelle proposant des ateliers et événements pour tous : 
-              tricot, lecture, écriture, généalogie, informatique et bien plus encore !
+          <div className="space-y-4">
+            <h3 className="text-sm font-bold tracking-wider text-zinc-100 uppercase">
+              Anim&apos;Média La Guerche
+            </h3>
+            <p className="text-zinc-400 text-sm leading-relaxed max-w-sm">
+              Association culturelle dynamique favorisant le partage de savoirs et de passions : 
+              tricot, lecture, écriture, généalogie, informatique, et plus encore !
             </p>
           </div>
 
           {/* Liens rapides */}
-          <div>
-            <h3 className="text-lg font-bold mb-4 text-[#00C2CB]">Liens rapides</h3>
-            <ul className="space-y-2">
+          <div className="space-y-4">
+            <h3 className="text-sm font-bold tracking-wider text-zinc-100 uppercase">
+              Liens rapides
+            </h3>
+            <ul className="space-y-2.5">
               <li>
                 <Link 
                   href="/ateliers" 
-                  className="text-gray-300 hover:text-white transition-colors text-sm"
+                  className="text-sm hover:text-zinc-100 hover:translate-x-1 inline-block transition-all duration-200"
                 >
                   🎨 Ateliers
                 </Link>
@@ -34,7 +38,7 @@ export function Footer() {
               <li>
                 <Link 
                   href="/evenements" 
-                  className="text-gray-300 hover:text-white transition-colors text-sm"
+                  className="text-sm hover:text-zinc-100 hover:translate-x-1 inline-block transition-all duration-200"
                 >
                   🎭 Événements
                 </Link>
@@ -42,7 +46,7 @@ export function Footer() {
               <li>
                 <Link 
                   href="/adhesion" 
-                  className="text-gray-300 hover:text-white transition-colors text-sm"
+                  className="text-sm hover:text-zinc-100 hover:translate-x-1 inline-block transition-all duration-200"
                 >
                   💳 Adhésion
                 </Link>
@@ -50,7 +54,7 @@ export function Footer() {
               <li>
                 <Link 
                   href="/vie-associative" 
-                  className="text-gray-300 hover:text-white transition-colors text-sm"
+                  className="text-sm hover:text-zinc-100 hover:translate-x-1 inline-block transition-all duration-200"
                 >
                   📋 Vie associative
                 </Link>
@@ -59,13 +63,15 @@ export function Footer() {
           </div>
 
           {/* Informations légales */}
-          <div>
-            <h3 className="text-lg font-bold mb-4 text-[#DE3156]">Informations légales</h3>
-            <ul className="space-y-2">
+          <div className="space-y-4">
+            <h3 className="text-sm font-bold tracking-wider text-zinc-100 uppercase">
+              Informations légales
+            </h3>
+            <ul className="space-y-2.5">
               <li>
                 <Link 
                   href="/mentions-legales" 
-                  className="text-gray-300 hover:text-white transition-colors text-sm flex items-center gap-2"
+                  className="text-sm hover:text-zinc-100 hover:translate-x-1 inline-block transition-all duration-200"
                 >
                   ⚖️ Mentions légales
                 </Link>
@@ -73,14 +79,14 @@ export function Footer() {
               <li>
                 <Link 
                   href="/politique-confidentialite" 
-                  className="text-gray-300 hover:text-white transition-colors text-sm flex items-center gap-2"
+                  className="text-sm hover:text-zinc-100 hover:translate-x-1 inline-block transition-all duration-200"
                 >
                   🔒 Politique de confidentialité
                 </Link>
               </li>
-              <li>
-                <p className="text-gray-400 text-xs mt-4">
-                  Conforme RGPD • Vos données sont protégées
+              <li className="pt-2">
+                <p className="text-zinc-500 text-xs border-l-2 border-zinc-800 pl-3">
+                  Conforme RGPD • Vos données sont sécurisées
                 </p>
               </li>
             </ul>
@@ -88,23 +94,23 @@ export function Footer() {
         </div>
 
         {/* Séparateur */}
-        <div className="border-t border-gray-700 mt-8 pt-8">
+        <div className="border-t border-zinc-900 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-gray-400 text-sm text-center md:text-left">
+            <p className="text-zinc-500 text-sm text-center md:text-left">
               © {currentYear} Anim&apos;Média La Guerche. Tous droits réservés.
             </p>
-            <div className="flex items-center gap-2 text-gray-400 text-xs">
+            <div className="flex items-center gap-2 text-zinc-500 text-xs">
               <span>Fait avec</span>
               <motion.span
                 animate={{
-                  scale: [1, 1.2, 1],
+                  scale: [1, 1.25, 1],
                 }}
                 transition={{
-                  duration: 1,
+                  duration: 1.2,
                   repeat: Infinity,
                   ease: "easeInOut"
                 }}
-                className="text-red-500"
+                className="text-[#DE3156] inline-block"
               >
                 ❤️
               </motion.span>
