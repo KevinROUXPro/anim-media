@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { collection, query, where, orderBy, limit, getDocs, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { Event, Workshop, CATEGORY_LABELS, ActivityCategory, MembershipStatus, CancellationPeriod } from '@/types';
+import { Event, Workshop, CATEGORY_LABELS, ActivityCategory, MembershipStatus } from '@/types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { THEME_CLASSES } from '@/config/theme';
@@ -20,16 +20,8 @@ import { cache, CacheKeys } from '@/lib/cache';
 import { 
   fadeInUp, 
   staggerContainer, 
-  staggerItem, 
   bounceIn, 
-  slideInLeft, 
-  slideInRight,
-  floatingAnimation,
-  textReveal,
-  buttonHover,
-  buttonTap,
-  cardHover,
-  cardTap
+  textReveal
 } from '@/lib/animations';
 
 export default function Home() {
@@ -94,7 +86,7 @@ export default function Home() {
           endDate: data.endDate?.toDate(),
           seasonStartDate: data.seasonStartDate?.toDate(),
           seasonEndDate: data.seasonEndDate?.toDate(),
-          cancellationPeriods: data.cancellationPeriods?.map((period: any) => ({
+          cancellationPeriods: data.cancellationPeriods?.map((period: { startDate: Timestamp; endDate: Timestamp; reason: string }) => ({
             startDate: period.startDate.toDate(),
             endDate: period.endDate.toDate(),
             reason: period.reason
@@ -283,7 +275,7 @@ export default function Home() {
                   ease: "easeInOut"
                 }}
               >
-                Bienvenue à Anim'Média
+                {"Bienvenue à Anim'Média"}
               </motion.span>
             </motion.h1>
             <motion.p
@@ -472,7 +464,7 @@ export default function Home() {
             className="text-center mb-12"
           >
             <h2 className={`text-3xl sm:text-4xl md:text-5xl font-bold mb-6 ${THEME_CLASSES.textGradient}`}>
-              À propos d'Anim'Média
+              {"À propos d'Anim'Média"}
             </h2>
             <div className="h-1 w-24 bg-gradient-to-r from-[#DE3156] to-[#F49928] mx-auto rounded-full mb-8"></div>
           </motion.div>
@@ -486,13 +478,13 @@ export default function Home() {
           >
             <div className="space-y-6 text-lg text-gray-700">
               <p className="leading-relaxed">
-                <strong className={THEME_CLASSES.textPrimary}>Anim'Média</strong> est une association dynamique dédiée à la promotion des activités culturelles et créatives pour tous les âges.
+                <strong className={THEME_CLASSES.textPrimary}>{"Anim'Média"}</strong> est une association dynamique dédiée à la promotion des activités culturelles et créatives pour tous les âges.
               </p>
               <p className="leading-relaxed">
-                Notre mission est de créer un espace de partage, d'apprentissage et de convivialité à travers des ateliers réguliers et des événements ponctuels variés.
+                Notre mission est de créer un espace de partage, d&apos;apprentissage et de convivialité à travers des ateliers réguliers et des événements ponctuels variés.
               </p>
               <p className="leading-relaxed">
-                Du <strong>tricot</strong> à l'<strong>informatique</strong>, de la <strong>lecture</strong> à la <strong>généalogie</strong>, nous proposons des activités pour tous les goûts et tous les niveaux !
+                Du <strong>tricot</strong> à l&apos;<strong>informatique</strong>, de la <strong>lecture</strong> à la <strong>généalogie</strong>, nous proposons des activités pour tous les goûts et tous les niveaux !
               </p>
             </div>
 
@@ -628,7 +620,7 @@ export default function Home() {
 }
 
 // Memoization du composant ActivityCard
-const ActivityCard = React.memo(({ title, description, date, category, location, href, imageUrl, delay, inView }: {
+const ActivityCard = React.memo((props: {
   title: string;
   description: string;
   date: Date;
@@ -639,6 +631,7 @@ const ActivityCard = React.memo(({ title, description, date, category, location,
   delay: number;
   inView: boolean;
 }) => {
+  const { title, description, date, category, location, href, imageUrl, delay } = props;
   const categoryInfo = CATEGORY_LABELS[category];
 
   // Mémoriser le formatage de la date
@@ -756,14 +749,30 @@ const ActivityCard = React.memo(({ title, description, date, category, location,
       </Link>
     </motion.div>
   );
-}
+}, (prevProps, nextProps) => {
+  return (
+    prevProps.title === nextProps.title &&
+    prevProps.description === nextProps.description &&
+    prevProps.date?.getTime() === nextProps.date?.getTime() &&
+    prevProps.category === nextProps.category &&
+    prevProps.location === nextProps.location &&
+    prevProps.href === nextProps.href &&
+    prevProps.imageUrl === nextProps.imageUrl &&
+    prevProps.delay === nextProps.delay &&
+    prevProps.inView === nextProps.inView
+  );
+});
+
+ActivityCard.displayName = 'ActivityCard';
+
 
 // Memoization du composant WorkshopCard pour la page d'accueil
-const WorkshopCard = React.memo(({ workshop, delay, inView }: {
+const WorkshopCard = React.memo((props: {
   workshop: Workshop;
   delay: number;
   inView: boolean;
 }) => {
+  const { workshop, delay } = props;
   const categoryInfo = CATEGORY_LABELS[workshop.category];
 
   // Mémoriser le calcul de la prochaine séance
@@ -799,6 +808,7 @@ const WorkshopCard = React.memo(({ workshop, delay, inView }: {
     workshop.startTime,
     workshop.startDate,
     workshop.id,
+    workshop.cancellationPeriods,
   ]);
 
   // Mémoriser le formatage de l'horaire
@@ -990,7 +1000,7 @@ function MembershipCTA() {
           </motion.div>
           
           <motion.p variants={fadeInUp} className="text-xl sm:text-2xl md:text-3xl mb-6 sm:mb-8 font-light px-4">
-            Devenez adhérent et profitez d'avantages exclusifs
+            Devenez adhérent et profitez d&apos;avantages exclusifs
           </motion.p>
 
           <motion.div 

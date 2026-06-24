@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { THEME_CLASSES } from '@/config/theme';
 
 export default function MentionsLegalesPage() {
   const router = useRouter();

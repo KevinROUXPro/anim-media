@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { collection, query, orderBy, getDocs, addDoc, updateDoc, deleteDoc, doc, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { Workshop, ActivityCategory, SkillLevel, CATEGORY_LABELS, LEVEL_LABELS, CancellationPeriod } from '@/types';
+import { Workshop, ActivityCategory, SkillLevel, CATEGORY_LABELS, LEVEL_LABELS, WorkshopDoc } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -72,7 +72,7 @@ export default function AdminWorkshopsPage() {
           id: doc.id,
           seasonStartDate: data.seasonStartDate?.toDate(),
           seasonEndDate: data.seasonEndDate?.toDate(),
-          cancellationPeriods: data.cancellationPeriods?.map((p: any) => ({
+          cancellationPeriods: data.cancellationPeriods?.map((p: { startDate: Timestamp; endDate: Timestamp; reason: string }) => ({
             startDate: p.startDate.toDate(),
             endDate: p.endDate.toDate(),
             reason: p.reason
@@ -111,7 +111,7 @@ export default function AdminWorkshopsPage() {
         .map(m => m.trim())
         .filter(m => m.length > 0);
 
-      const workshopData: any = {
+      const workshopData: Partial<WorkshopDoc> = {
         title: formData.title,
         description: formData.description,
         isRecurring: true,

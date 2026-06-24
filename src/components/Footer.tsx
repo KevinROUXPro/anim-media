@@ -12,7 +12,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* À propos */}
           <div>
-            <h3 className="text-lg font-bold mb-4 text-[#F49928]">Anim'Média La Guerche</h3>
+            <h3 className="text-lg font-bold mb-4 text-[#F49928]">Anim&apos;Média La Guerche</h3>
             <p className="text-gray-300 text-sm leading-relaxed">
               Association culturelle proposant des ateliers et événements pour tous : 
               tricot, lecture, écriture, généalogie, informatique et bien plus encore !
@@ -91,7 +91,7 @@ export function Footer() {
         <div className="border-t border-gray-700 mt-8 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-gray-400 text-sm text-center md:text-left">
-              © {currentYear} Anim'Média La Guerche. Tous droits réservés.
+              © {currentYear} Anim&apos;Média La Guerche. Tous droits réservés.
             </p>
             <div className="flex items-center gap-2 text-gray-400 text-xs">
               <span>Fait avec</span>

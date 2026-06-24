@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { collection, query, orderBy, getDocs, where, limit as firestoreLimit } from 'firebase/firestore';
+import { collection, query, orderBy, getDocs, where, limit as firestoreLimit, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Workshop, ActivityCategory, CATEGORY_LABELS, LEVEL_LABELS } from '@/types';
 import { motion } from 'framer-motion';
@@ -19,11 +19,10 @@ import { cache, CacheKeys } from '@/lib/cache';
 import { EventCardSkeleton } from '@/components/ui/loading-skeleton';
 
 export default function WorkshopsPage() {
-  const [workshops, setWorkshops] = useState<Workshop[]>([]);
   const [filteredWorkshops, setFilteredWorkshops] = useState<Workshop[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<ActivityCategory | 'ALL'>('ALL');
   const [loading, setLoading] = useState(true);
-  const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 });
+  const [ref] = useInView({ triggerOnce: true, threshold: 0.1 });
 
   // Fonction pour récupérer les ateliers avec cache
   const fetchWorkshops = useCallback(async (category?: ActivityCategory | 'ALL') => {
@@ -66,7 +65,7 @@ export default function WorkshopsPage() {
           endTime: data.endTime || '16:00',
           seasonStartDate: data.seasonStartDate?.toDate(),
           seasonEndDate: data.seasonEndDate?.toDate(),
-          cancellationPeriods: data.cancellationPeriods?.map((p: any) => ({
+          cancellationPeriods: data.cancellationPeriods?.map((p: { startDate: Timestamp; endDate: Timestamp; reason: string }) => ({
             startDate: p.startDate.toDate(),
             endDate: p.endDate.toDate(),
             reason: p.reason
@@ -110,7 +109,6 @@ export default function WorkshopsPage() {
       setLoading(true);
       try {
         const data = await fetchWorkshops(selectedCategory);
-        setWorkshops(data);
         setFilteredWorkshops(data);
       } catch (error) {
         console.error('Error loading workshops:', error);
@@ -286,7 +284,7 @@ const WorkshopCard = React.memo(({ workshop, index }: { workshop: Workshop; inde
     workshop.seasonEndDate,
     workshop.startTime,
     workshop.id,
-    // Note: cancellationPeriods peut changer, mais on garde le cache court
+    workshop.cancellationPeriods,
   ]);
 
   // Mémoriser le formatage de l'horaire

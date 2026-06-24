@@ -157,48 +157,50 @@ export interface Suggestion {
   updatedAt: Date;
 }
 
+import { Timestamp } from 'firebase/firestore';
+
 // Types pour Firestore (avec timestamps Firestore)
 export interface UserDoc extends Omit<User, 'createdAt' | 'membershipExpiry' | 'membershipStartDate'> {
-  createdAt: any; // Firestore Timestamp
-  membershipExpiry?: any;
-  membershipStartDate?: any;
+  createdAt: Timestamp; // Firestore Timestamp
+  membershipExpiry?: Timestamp;
+  membershipStartDate?: Timestamp;
 }
 
 export interface EventDoc extends Omit<Event, 'date' | 'createdAt' | 'updatedAt'> {
-  date: any;
-  createdAt: any;
-  updatedAt: any;
+  date: Timestamp;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 }
 
 export interface WorkshopDoc extends Omit<Workshop, 'seasonStartDate' | 'seasonEndDate' | 'cancellationPeriods' | 'createdAt' | 'updatedAt' | 'date' | 'startDate' | 'endDate' | 'firstSessionDate' | 'lastSessionDate'> {
-  seasonStartDate?: any;
-  seasonEndDate?: any;
+  seasonStartDate?: Timestamp;
+  seasonEndDate?: Timestamp;
   cancellationPeriods?: Array<{
-    startDate: any;
-    endDate: any;
+    startDate: Timestamp;
+    endDate: Timestamp;
     reason: string;
   }>;
-  createdAt: any;
-  updatedAt: any;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
   // Champs obsolètes optionnels
-  date?: any;
-  startDate?: any;
-  endDate?: any;
-  firstSessionDate?: any;
-  lastSessionDate?: any;
+  date?: Timestamp;
+  startDate?: Timestamp;
+  endDate?: Timestamp;
+  firstSessionDate?: Timestamp;
+  lastSessionDate?: Timestamp;
 }
 
 export interface RegistrationDoc extends Omit<Registration, 'createdAt'> {
-  createdAt: any;
+  createdAt: Timestamp;
 }
 
 export interface AGReportDoc extends Omit<AGReport, 'date' | 'createdAt' | 'updatedAt'> {
-  date: any;
-  createdAt: any;
-  updatedAt: any;
+  date: Timestamp;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 }
 
 export interface SuggestionDoc extends Omit<Suggestion, 'createdAt' | 'updatedAt'> {
-  createdAt: any;
-  updatedAt: any;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 }

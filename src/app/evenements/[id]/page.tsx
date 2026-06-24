@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { doc, getDoc, query, collection, where, getDocs, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, query, collection, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Event, CATEGORY_LABELS } from '@/types';
 import { format } from 'date-fns';
@@ -24,34 +24,7 @@ export default function EventDetailPage() {
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const syncParticipantCount = async (eventId: string) => {
-    try {
-      const q = query(
-        collection(db, 'registrations'),
-        where('eventId', '==', eventId)
-      );
-      const snapshot = await getDocs(q);
-      const actualCount = snapshot.size;
-      
-      // Tenter de mettre à jour le compteur dans l'événement (peut échouer si permissions insuffisantes)
-      try {
-        const eventRef = doc(db, 'events', eventId);
-        await updateDoc(eventRef, {
-          currentParticipants: actualCount
-        });
-      } catch (updateError) {
-        console.warn('Cannot update participant count (permissions):', updateError);
-        // Continue sans bloquer - on utilisera le compteur calculé
-      }
-      
-      return actualCount;
-    } catch (error) {
-      console.error('Error syncing participant count:', error);
-      return 0;
-    }
-  };
-
-  const fetchEvent = async () => {
+  const fetchEvent = useCallback(async () => {
     try {
       const eventDoc = await getDoc(doc(db, 'events', params.id as string));
       if (eventDoc.exists()) {
@@ -68,7 +41,7 @@ export default function EventDetailPage() {
             );
             const registrationsSnapshot = await getDocs(q);
             actualParticipants = registrationsSnapshot.size;
-          } catch (error) {
+          } catch {
             console.warn('Cannot count registrations (not logged in or insufficient permissions)');
             // Utiliser la valeur du document si on ne peut pas compter
             actualParticipants = data.currentParticipants || 0;
@@ -88,11 +61,11 @@ export default function EventDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [params.id, user]);
 
   useEffect(() => {
     fetchEvent();
-  }, [params.id, user?.id]); // Utiliser user.id pour éviter les changements de taille du tableau
+  }, [fetchEvent]);
 
   if (loading) {
     return (

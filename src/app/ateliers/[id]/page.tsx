@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { doc, getDoc, query, collection, where, getDocs, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, query, collection, where, getDocs, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Workshop, CATEGORY_LABELS, LEVEL_LABELS } from '@/types';
 import { format } from 'date-fns';
@@ -14,8 +14,8 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { RegisterButton } from '@/components/RegisterButton';
 import { THEME_CLASSES } from '@/config/theme';
-import { fadeInUp, bounceIn } from '@/lib/animations';
-import { generateWorkshopDates, formatWorkshopSchedule, getNextSession } from '@/lib/workshop-utils';
+import { fadeInUp } from '@/lib/animations';
+import { formatWorkshopSchedule, getNextSession } from '@/lib/workshop-utils';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function WorkshopDetailPage() {
@@ -25,34 +25,7 @@ export default function WorkshopDetailPage() {
   const [workshop, setWorkshop] = useState<Workshop | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const syncParticipantCount = async (workshopId: string) => {
-    try {
-      const q = query(
-        collection(db, 'registrations'),
-        where('workshopId', '==', workshopId)
-      );
-      const snapshot = await getDocs(q);
-      const actualCount = snapshot.size;
-      
-      // Tenter de mettre à jour le compteur dans l'atelier (peut échouer si permissions insuffisantes)
-      try {
-        const workshopRef = doc(db, 'workshops', workshopId);
-        await updateDoc(workshopRef, {
-          currentParticipants: actualCount
-        });
-      } catch (updateError) {
-        console.warn('Cannot update participant count (permissions):', updateError);
-        // Continue sans bloquer - on utilisera le compteur calculé
-      }
-      
-      return actualCount;
-    } catch (error) {
-      console.error('Error syncing participant count:', error);
-      return 0;
-    }
-  };
-
-  const fetchWorkshop = async () => {
+  const fetchWorkshop = useCallback(async () => {
     try {
       const workshopDoc = await getDoc(doc(db, 'workshops', params.id as string));
       if (workshopDoc.exists()) {
@@ -69,7 +42,7 @@ export default function WorkshopDetailPage() {
             );
             const registrationsSnapshot = await getDocs(q);
             actualParticipants = registrationsSnapshot.size;
-          } catch (error) {
+          } catch {
             console.warn('Cannot count registrations (not logged in or insufficient permissions)');
             // Utiliser la valeur du document si on ne peut pas compter
             actualParticipants = data.currentParticipants || 0;
@@ -87,7 +60,7 @@ export default function WorkshopDetailPage() {
           endTime: data.endTime || '16:00',
           seasonStartDate: data.seasonStartDate?.toDate(),
           seasonEndDate: data.seasonEndDate?.toDate(),
-          cancellationPeriods: data.cancellationPeriods?.map((p: any) => ({
+          cancellationPeriods: data.cancellationPeriods?.map((p: { startDate: Timestamp; endDate: Timestamp; reason: string }) => ({
             startDate: p.startDate.toDate(),
             endDate: p.endDate.toDate(),
             reason: p.reason
@@ -105,11 +78,11 @@ export default function WorkshopDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [params.id, user]);
 
   useEffect(() => {
     fetchWorkshop();
-  }, [params.id, user?.id]); // Utiliser user.id pour éviter les changements de taille du tableau
+  }, [fetchWorkshop]);
 
   if (loading) {
     return (

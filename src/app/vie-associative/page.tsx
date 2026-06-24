@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useState } from 'react';
 import { collection, query, getDocs, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { AGReport, AGReportDoc, MembershipStatus } from '@/types';
+import { AGReport, AGReportDoc } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
@@ -85,7 +85,7 @@ function VieAssociativeContent() {
               Vie Associative
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Retrouvez ici tous les comptes rendus des Assemblées Générales de l'association
+              Retrouvez ici tous les comptes rendus des Assemblées Générales de l&apos;association
             </p>
           </motion.div>
 

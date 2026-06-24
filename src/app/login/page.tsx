@@ -55,6 +55,7 @@ export default function LoginPage() {
       // Rafraîchir le router et rediriger
       router.refresh();
       router.push('/profil');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error('Login error:', error);
       let errorMessage = 'Erreur lors de la connexion';

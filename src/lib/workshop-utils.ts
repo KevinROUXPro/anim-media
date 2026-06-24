@@ -5,7 +5,7 @@
 /**
  * Labels des jours de la semaine
  */
-import { addDays, startOfDay } from 'date-fns';
+import { startOfDay } from 'date-fns';
 import { CancellationPeriod } from '@/types';
 
 export const WEEKDAY_LABELS: Record<number, string> = {
@@ -80,11 +80,12 @@ export function generateWorkshopDates(
   seasonStartDate?: Date,
   seasonEndDate?: Date,
   startTime: string = '14:00',
-  endTime: string = '18:00',
+  _endTime: string = '18:00',
   maxSessions: number = 100,
   cancellationPeriods?: CancellationPeriod[]
 ): Date[] {
   const dates: Date[] = [];
+  void _endTime;
   const start = seasonStartDate || new Date();
   const end = seasonEndDate || new Date(start.getFullYear() + 1, start.getMonth(), start.getDate());
   

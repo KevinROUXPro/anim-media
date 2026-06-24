@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
@@ -12,7 +12,7 @@ export function AutoLogout({ inactivityTimeout = 30 * 60 * 1000 }: AutoLogoutPro
   const { signOut, user } = useAuth();
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const resetTimeout = () => {
+  const resetTimeout = useCallback(() => {
     // Effacer le timeout existant
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -25,7 +25,7 @@ export function AutoLogout({ inactivityTimeout = 30 * 60 * 1000 }: AutoLogoutPro
         signOut();
       }, inactivityTimeout);
     }
-  };
+  }, [user, signOut, inactivityTimeout]);
 
   useEffect(() => {
     if (!user) return;
@@ -49,7 +49,7 @@ export function AutoLogout({ inactivityTimeout = 30 * 60 * 1000 }: AutoLogoutPro
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [user, inactivityTimeout]);
+  }, [user, inactivityTimeout, resetTimeout]);
 
   return null; // Composant invisible
 }

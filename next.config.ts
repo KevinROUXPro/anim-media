@@ -31,6 +31,7 @@ const nextConfig: NextConfig = {
     minimumCacheTTL: 60,
   },
   reactStrictMode: true,
+  output: 'standalone',
   // Optimisations de performance
   compress: true,
   poweredByHeader: false,

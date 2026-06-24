@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { THEME_CLASSES } from '@/config/theme';
-import { scaleInBounce, slideInRight, fadeIn } from '@/lib/animations';
+import { scaleInBounce, slideInRight } from '@/lib/animations';
 import { ErrorMessage } from '@/components/ui/error-message';
 import { 
   isValidEmail, 
@@ -123,6 +123,7 @@ export default function SignupPage() {
       // Rafraîchir le router et rediriger
       router.refresh();
       router.push('/profil');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error('Signup error:', error);
       let errorMessage = 'Erreur lors de la création du compte';
@@ -187,7 +188,7 @@ export default function SignupPage() {
                 🎊 Créer un compte
               </CardTitle>
               <CardDescription className="text-base sm:text-lg">
-                Rejoignez Anim'Média et inscrivez-vous à nos activités
+                {"Rejoignez Anim'Média et inscrivez-vous à nos activités"}
               </CardDescription>
             </motion.div>
           </CardHeader>
@@ -301,7 +302,7 @@ export default function SignupPage() {
                     className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
                   />
                   <label htmlFor="privacy" className="text-sm text-gray-700 cursor-pointer">
-                    J'accepte la{' '}
+                    J&apos;accepte la{' '}
                     <Link 
                       href="/politique-confidentialite" 
                       target="_blank"

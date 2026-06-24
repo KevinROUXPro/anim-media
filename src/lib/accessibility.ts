@@ -59,15 +59,11 @@ export function prefersReducedMotion(): boolean {
 
 // Gérer le focus visible pour la navigation au clavier
 export function setupKeyboardNavigation() {
-  let isUsingKeyboard = false;
-
   document.addEventListener('keydown', () => {
-    isUsingKeyboard = true;
     document.body.classList.add('keyboard-navigation');
   });
 
   document.addEventListener('mousedown', () => {
-    isUsingKeyboard = false;
     document.body.classList.remove('keyboard-navigation');
   });
 }

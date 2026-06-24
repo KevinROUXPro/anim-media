@@ -1,0 +1,32 @@
+# apphosting.yaml
+# Fichier de configuration pour Firebase App Hosting
+
+# Configuration des scripts de build et de démarrage
+scripts:
+  buildCommand: npm run build
+  runCommand: node .next/standalone/server.js
+
+# Configuration des ressources Cloud Run (instance de serveur)
+runConfig:
+  minInstances: 0
+  maxInstances: 5
+  concurrency: 80
+  cpu: 1
+  memoryMiB: 512
+
+# Variables d'environnement pour l'application
+# Note : Vous pouvez également les définir directement dans la console Firebase
+# (dans les paramètres du Backend App Hosting > Environnement)
+env:
+  - variable: NEXT_PUBLIC_FIREBASE_API_KEY
+    value: "" # Remplir avec votre clé API ou définir dans la console Firebase
+  - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    value: "" # Exemple : mon-projet.firebaseapp.com
+  - variable: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    value: "" # Exemple : mon-projet
+  - variable: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    value: "" # Exemple : mon-projet.firebasestorage.app
+  - variable: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    value: "" # Exemple : 1234567890
+  - variable: NEXT_PUBLIC_FIREBASE_APP_ID
+    value: "" # Exemple : 1:1234567890:web:abcdef123456

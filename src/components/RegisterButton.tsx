@@ -2,8 +2,8 @@
 
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { useState, useEffect } from 'react';
-import { collection, addDoc, deleteDoc, doc, query, where, getDocs, Timestamp, updateDoc, increment, getDoc } from 'firebase/firestore';
+import { useState, useEffect, useCallback } from 'react';
+import { collection, addDoc, deleteDoc, doc, query, where, getDocs, Timestamp, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
@@ -28,7 +28,7 @@ export function RegisterButton({
   const [checking, setChecking] = useState(true);
 
   // Fonction pour synchroniser le compteur de participants avec la réalité
-  const syncParticipantCount = async () => {
+  const syncParticipantCount = useCallback(async () => {
     try {
       const field = activityType === 'event' ? 'eventId' : 'workshopId';
       const q = query(
@@ -50,7 +50,7 @@ export function RegisterButton({
       console.error('Error syncing participant count:', error);
       return 0;
     }
-  };
+  }, [activityId, activityType]);
 
   useEffect(() => {
     async function checkRegistration() {
@@ -83,7 +83,7 @@ export function RegisterButton({
     }
 
     checkRegistration();
-  }, [user, activityId, activityType]);
+  }, [user, activityId, activityType, syncParticipantCount]);
 
   const handleRegister = async () => {
     if (!user) {
@@ -118,7 +118,12 @@ export function RegisterButton({
         return;
       }
 
-      const registrationData: any = {
+      const registrationData: {
+        userId: string;
+        createdAt: Timestamp;
+        eventId?: string;
+        workshopId?: string;
+      } = {
         userId: user.id,
         createdAt: Timestamp.now(),
       };
@@ -195,7 +200,7 @@ export function RegisterButton({
           size="lg" 
           className={`w-full sm:w-auto ${THEME_CLASSES.buttonPrimary} min-w-[250px]`}
         >
-          🔐 Se connecter pour s'inscrire
+          🔐 Se connecter pour s&apos;inscrire
         </Button>
         <p className="text-sm text-gray-600 text-center">
           Vous devez être connecté pour vous inscrire à cette activité

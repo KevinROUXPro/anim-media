@@ -18,7 +18,6 @@ import { cache, CacheKeys } from '@/lib/cache';
 import { EventCardSkeleton } from '@/components/ui/loading-skeleton';
 
 export default function EventsPage() {
-  const [events, setEvents] = useState<Event[]>([]);
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<ActivityCategory | 'ALL'>('ALL');
   const [loading, setLoading] = useState(true);
@@ -38,7 +37,7 @@ export default function EventsPage() {
       const now = Timestamp.now();
       
       // Construire la requête avec filtre côté Firestore
-      let eventsQuery = query(
+      const eventsQuery = query(
         collection(db, 'events'),
         where('date', '>=', now),
         orderBy('date', 'asc'),
@@ -77,7 +76,6 @@ export default function EventsPage() {
       setLoading(true);
       try {
         const data = await fetchEvents(selectedCategory);
-        setEvents(data);
         setFilteredEvents(data);
       } catch (error) {
         console.error('Error loading events:', error);
@@ -220,7 +218,8 @@ export default function EventsPage() {
 }
 
 // Memoization du composant EventCard
-const EventCard = React.memo(({ event, index, inView }: { event: Event; index: number; inView: boolean }) => {
+const EventCard = React.memo((props: { event: Event; index: number; inView: boolean }) => {
+  const { event, index } = props;
   const categoryInfo = CATEGORY_LABELS[event.category];
 
   // Mémoriser le formatage de la date

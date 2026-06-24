@@ -3,10 +3,10 @@
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useState } from 'react';
-import { collection, query, where, getDocs, orderBy, Timestamp, doc, deleteDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, deleteDoc } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { deleteUser } from 'firebase/auth';
-import { Event, Workshop, Registration, MembershipStatus, MEMBERSHIP_LABELS } from '@/types';
+import { MembershipStatus, MEMBERSHIP_LABELS } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
@@ -17,7 +17,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Trash2, AlertTriangle } from 'lucide-react';
 import { THEME_CLASSES } from '@/config/theme';
-import { fadeInUp, staggerContainer, staggerItem, bounceIn, pulseAnimation } from '@/lib/animations';
+import { staggerContainer, staggerItem, bounceIn } from '@/lib/animations';
 
 export default function ProfilPage() {
   return (
@@ -30,6 +30,7 @@ export default function ProfilPage() {
 function ProfilContent() {
   const { user, signOut } = useAuth();
   const router = useRouter();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [registrations, setRegistrations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -73,6 +74,7 @@ function ProfilContent() {
       
       // 5. Rediriger vers la page d'accueil
       router.push('/');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error('Erreur lors de la suppression du compte:', error);
       
@@ -134,6 +136,7 @@ function ProfilContent() {
         // Trier côté client par date de création (du plus récent au plus ancien)
         const sortedRegs = regsWithDetails
           .filter(r => r.activity)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           .sort((a: any, b: any) => {
             const dateA = a.createdAt?.toDate?.() || new Date(0);
             const dateB = b.createdAt?.toDate?.() || new Date(0);
@@ -362,7 +365,7 @@ function ProfilContent() {
                     ⚠️ Êtes-vous absolument sûr(e) ?
                   </p>
                   <p className="text-sm text-red-800 text-center">
-                    Cette action ne peut pas être annulée. Cliquez sur "Confirmer la suppression" pour supprimer définitivement votre compte.
+                    {"Cette action ne peut pas être annulée. Cliquez sur \"Confirmer la suppression\" pour supprimer définitivement votre compte."}
                   </p>
                   <div className="flex gap-3">
                     <Button
@@ -393,7 +396,7 @@ function ProfilContent() {
               )}
 
               <p className="text-xs text-gray-500 text-center">
-                Conformément au RGPD (Article 17), vous avez le droit de demander l'effacement de vos données personnelles.
+                Conformément au RGPD (Article 17), vous avez le droit de demander l&apos;effacement de vos données personnelles.
               </p>
             </CardContent>
           </Card>
@@ -403,6 +406,7 @@ function ProfilContent() {
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function ActivityRegistrationCard({ registration, past = false }: { registration: any; past?: boolean }) {
   const activity = registration.activity;
   const isPastActivity = past;

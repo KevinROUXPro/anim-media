@@ -165,7 +165,7 @@ export default function VosIdeesPage() {
               Vos Idées
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-6">
-              Partagez vos suggestions d'ateliers, d'événements et d'activités !
+              Partagez vos suggestions d&apos;ateliers, d&apos;événements et d&apos;activités !
             </p>
             
             {user && user.membershipStatus === MembershipStatus.ACTIVE && (
@@ -199,7 +199,7 @@ export default function VosIdeesPage() {
                   <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-4">
                       <div>
-                        <Label htmlFor="title">Titre de l'idée</Label>
+                        <Label htmlFor="title">Titre de l&apos;idée</Label>
                         <Input
                           id="title"
                           value={formData.title}

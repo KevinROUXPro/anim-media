@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -118,7 +118,7 @@ export function ImageUpload({
             Cliquez pour sélectionner une image ou glissez-la ici
           </p>
           <p className="text-xs text-gray-500 mb-4">
-            PNG, JPG, GIF jusqu'à {maxSizeMB}MB
+            PNG, JPG, GIF jusqu&apos;à {maxSizeMB}MB
           </p>
         </div>
       )}
