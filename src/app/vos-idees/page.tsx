@@ -16,7 +16,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { THEME_CLASSES } from '@/config/theme';
 import { fadeInUp, staggerContainer, staggerItem } from '@/lib/animations';
-import { Lightbulb, Heart, Plus, X, Filter } from 'lucide-react';
+import { Lightbulb, Heart, Plus, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function VosIdeesPage() {
@@ -139,9 +139,31 @@ export default function VosIdeesPage() {
     }
   }
 
-  const filteredSuggestions = filterCategory === 'ALL' 
-    ? suggestions 
-    : suggestions.filter(s => s.category === filterCategory);
+  const [sortBy, setSortBy] = useState<'UPVOTES' | 'RECENT'>('UPVOTES');
+
+  // Filtrage et tri des suggestions
+  const processedSuggestions = suggestions
+    .filter(s => filterCategory === 'ALL' || s.category === filterCategory)
+    .sort((a, b) => {
+      if (sortBy === 'UPVOTES') {
+        const diff = (b.likes?.length || 0) - (a.likes?.length || 0);
+        if (diff !== 0) return diff;
+      }
+      return (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0);
+    });
+
+  const getStatusBadge = (status?: string) => {
+    switch (status) {
+      case 'UNDER_REVIEW':
+        return <span className="bg-amber-100 text-amber-800 text-xs font-semibold px-2.5 py-0.5 rounded-full border border-amber-300">🔍 En étude</span>;
+      case 'APPROVED':
+        return <span className="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded-full border border-green-300">🚀 Projet retenu</span>;
+      case 'COMPLETED':
+        return <span className="bg-purple-100 text-purple-800 text-xs font-semibold px-2.5 py-0.5 rounded-full border border-purple-300">🎉 Réalisé</span>;
+      default:
+        return <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full border border-blue-200">💡 Soumise</span>;
+    }
+  };
 
   if (loading) {
     return (
@@ -162,10 +184,10 @@ export default function VosIdeesPage() {
           {/* Header */}
           <motion.div variants={fadeInUp} className="text-center mb-12">
             <h1 className={`text-4xl md:text-5xl font-bold ${THEME_CLASSES.textGradient} mb-4`}>
-              Vos Idées
+              Laboratoire d&apos;Idées
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-6">
-              Partagez vos suggestions d&apos;ateliers, d&apos;événements et d&apos;activités !
+              Votez pour les prochains ateliers et découvrez les projets retenus par l&apos;équipe !
             </p>
             
             {user && user.membershipStatus === MembershipStatus.ACTIVE && (
@@ -189,11 +211,11 @@ export default function VosIdeesPage() {
                 exit={{ opacity: 0, height: 0 }}
                 className="mb-8"
               >
-                <Card className="max-w-2xl mx-auto">
+                <Card className="max-w-2xl mx-auto border-2 border-amber-200 shadow-md">
                   <CardHeader>
-                    <CardTitle>Nouvelle suggestion</CardTitle>
+                    <CardTitle className="text-2xl text-amber-900">💡 Proposer une nouvelle idée</CardTitle>
                     <CardDescription>
-                      Partagez votre idée avec la communauté
+                      Proposez un atelier ou un événement culturel. Les membres pourront voter pour votre idée !
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -204,7 +226,7 @@ export default function VosIdeesPage() {
                           id="title"
                           value={formData.title}
                           onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                          placeholder="Ex: Atelier poterie"
+                          placeholder="Ex: Atelier poterie & céramique"
                           required
                         />
                       </div>
@@ -234,7 +256,7 @@ export default function VosIdeesPage() {
                           id="description"
                           value={formData.description}
                           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                          placeholder="Décrivez votre idée en détail..."
+                          placeholder="Décrivez ce que vous aimeriez réaliser lors de cet atelier..."
                           rows={5}
                           required
                         />
@@ -254,15 +276,15 @@ export default function VosIdeesPage() {
             )}
           </AnimatePresence>
 
-          {/* Filtre par catégorie */}
-          <motion.div variants={fadeInUp} className="mb-8">
-            <div className="flex items-center gap-4 justify-center flex-wrap">
+          {/* Filtres et Tri */}
+          <motion.div variants={fadeInUp} className="mb-8 flex flex-col md:flex-row justify-between items-center gap-4 bg-white/60 p-4 rounded-xl backdrop-blur-sm border border-gray-100 shadow-sm">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider mr-1">Catégorie :</span>
               <Button
                 onClick={() => setFilterCategory('ALL')}
                 variant={filterCategory === 'ALL' ? 'default' : 'outline'}
                 size="sm"
               >
-                <Filter className="h-4 w-4 mr-2" />
                 Toutes
               </Button>
               {Object.values(ActivityCategory).map((cat) => (
@@ -276,17 +298,35 @@ export default function VosIdeesPage() {
                 </Button>
               ))}
             </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Trier par :</span>
+              <Button
+                onClick={() => setSortBy('UPVOTES')}
+                variant={sortBy === 'UPVOTES' ? 'default' : 'outline'}
+                size="sm"
+              >
+                🔥 Popularité
+              </Button>
+              <Button
+                onClick={() => setSortBy('RECENT')}
+                variant={sortBy === 'RECENT' ? 'default' : 'outline'}
+                size="sm"
+              >
+                ⏱️ Plus récentes
+              </Button>
+            </div>
           </motion.div>
 
           {/* Liste des suggestions */}
-          {filteredSuggestions.length === 0 ? (
+          {processedSuggestions.length === 0 ? (
             <motion.div variants={fadeInUp}>
               <Card className="text-center py-12">
                 <CardContent>
                   <Lightbulb className="mx-auto h-16 w-16 text-gray-400 mb-4" />
                   <p className="text-xl text-gray-600">
                     {filterCategory === 'ALL' 
-                      ? 'Aucune suggestion pour le moment. Soyez le premier à partager vos idées !'
+                      ? 'Aucune suggestion pour le moment. Soyez le premier à proposer une idée !'
                       : 'Aucune suggestion dans cette catégorie'}
                   </p>
                 </CardContent>
@@ -297,33 +337,44 @@ export default function VosIdeesPage() {
               variants={staggerContainer}
               className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
             >
-              {filteredSuggestions.map((suggestion) => (
+              {processedSuggestions.map((suggestion) => (
                 <motion.div key={suggestion.id} variants={staggerItem}>
-                  <Card className={`h-full ${THEME_CLASSES.cardHover} transition-all duration-300`}>
+                  <Card className={`h-full flex flex-col justify-between ${THEME_CLASSES.cardHover} transition-all duration-300 relative border border-amber-100/50 shadow-sm`}>
                     <CardHeader>
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="text-2xl">
-                          {CATEGORY_LABELS[suggestion.category].icon}
+                      <div className="flex items-center justify-between gap-2 mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl">{CATEGORY_LABELS[suggestion.category].icon}</span>
+                          {getStatusBadge(suggestion.status)}
                         </div>
                         <Button
                           onClick={() => handleLike(suggestion.id)}
-                          variant={user && suggestion.likes.includes(user.id) ? 'default' : 'outline'}
+                          variant={user && suggestion.likes?.includes(user.id) ? 'default' : 'outline'}
                           size="sm"
-                          className="flex items-center gap-2"
+                          className={`flex items-center gap-1.5 font-bold ${
+                            user && suggestion.likes?.includes(user.id)
+                              ? 'bg-rose-500 hover:bg-rose-600 text-white border-rose-500'
+                              : 'text-gray-700 hover:text-rose-600 hover:bg-rose-50'
+                          }`}
                         >
                           <Heart 
-                            className={`h-4 w-4 ${user && suggestion.likes.includes(user.id) ? 'fill-current' : ''}`}
+                            className={`h-4 w-4 ${user && suggestion.likes?.includes(user.id) ? 'fill-current text-white' : 'text-rose-500'}`}
                           />
-                          {suggestion.likes.length}
+                          <span>{suggestion.likes?.length || 0}</span>
                         </Button>
                       </div>
-                      <CardTitle className="text-xl">{suggestion.title}</CardTitle>
-                      <CardDescription className="text-sm">
-                        Par {suggestion.userName} • {format(suggestion.createdAt, 'dd MMM yyyy', { locale: fr })}
+                      <CardTitle className="text-xl text-gray-900">{suggestion.title}</CardTitle>
+                      <CardDescription className="text-xs text-gray-500">
+                        Proposé par {suggestion.userName} • {suggestion.createdAt ? format(suggestion.createdAt, 'dd MMM yyyy', { locale: fr }) : 'Récemment'}
                       </CardDescription>
                     </CardHeader>
-                    <CardContent>
-                      <p className="text-gray-600 whitespace-pre-wrap">{suggestion.description}</p>
+                    <CardContent className="flex-1">
+                      <p className="text-gray-600 text-sm whitespace-pre-wrap leading-relaxed">{suggestion.description}</p>
+                      {suggestion.adminComment && (
+                        <div className="mt-4 p-3 bg-amber-50 border-l-4 border-amber-400 text-xs text-amber-900 rounded-r">
+                          <p className="font-semibold mb-0.5">📢 Note de l&apos;association :</p>
+                          <p>{suggestion.adminComment}</p>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 </motion.div>

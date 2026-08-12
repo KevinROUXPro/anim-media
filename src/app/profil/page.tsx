@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import { Trash2, AlertTriangle } from 'lucide-react';
 import { THEME_CLASSES } from '@/config/theme';
 import { staggerContainer, staggerItem, bounceIn } from '@/lib/animations';
+import { DigitalMembershipCard } from '@/components/DigitalMembershipCard';
 
 export default function ProfilPage() {
   return (
@@ -233,6 +234,13 @@ function ProfilContent() {
           </motion.div>
         </div>
       </motion.section>
+
+      {/* Pass Adhérent Gamifié */}
+      {user && (
+        <section className="pt-10 px-4 max-w-7xl mx-auto">
+          <DigitalMembershipCard user={user} />
+        </section>
+      )}
 
       {/* Mes Inscriptions */}
       <section className="py-12">

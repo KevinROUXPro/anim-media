@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { collection, query, where, orderBy, limit, getDocs, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -17,6 +16,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { EventCardSkeleton } from '@/components/ui/loading-skeleton';
 import { OptimizedImage } from '@/components/OptimizedImage';
 import { cache, CacheKeys } from '@/lib/cache';
+import { MatchQuizModal } from '@/components/MatchQuizModal';
+import { MediaGallery } from '@/components/MediaGallery';
 import { 
   fadeInUp, 
   staggerContainer, 
@@ -30,6 +31,7 @@ export default function Home() {
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
   const [upcomingWorkshops, setUpcomingWorkshops] = useState<Workshop[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isQuizOpen, setIsQuizOpen] = useState(false);
 
   const handleMouseMove = React.useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!pageRef.current) return;
@@ -291,8 +293,15 @@ export default function Home() {
             </motion.p>
             <motion.div
               variants={fadeInUp}
-              className="flex flex-col sm:flex-row gap-5 justify-center px-4"
+              className="flex flex-col sm:flex-row gap-5 justify-center items-center px-4"
             >
+              <Button
+                onClick={() => setIsQuizOpen(true)}
+                size="lg"
+                className="w-full sm:w-auto text-base px-8 py-6 h-auto bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white font-bold rounded-xl shadow-lg hover:shadow-amber-500/25 hover:scale-105 transition-all duration-200"
+              >
+                ✨ Quel atelier est fait pour moi ? (Quiz 30s)
+              </Button>
               <Link href="/evenements" className="w-full sm:w-auto">
                 <motion.div 
                   whileHover={{ 
@@ -519,6 +528,17 @@ export default function Home() {
           </motion.div>
         </div>
       </section>
+
+      {/* Galerie Participative */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <MediaGallery />
+      </div>
+
+      {/* CTA Adhésion */}
+      <MembershipCTA />
+
+      {/* Modal Quiz Match Culturel */}
+      <MatchQuizModal isOpen={isQuizOpen} onClose={() => setIsQuizOpen(false)} />
     </div>
   );
 }
@@ -565,32 +585,23 @@ const ActivityCard = React.memo((props: {
           }}
           className="card-premium h-full overflow-hidden flex flex-col p-0 cursor-pointer border-transparent hover:border-[#DE3156]/20 bg-white"
         >
-          {imageUrl && (
-            <div className="relative h-48 w-full overflow-hidden border-b border-zinc-100">
-              <OptimizedImage
-                src={imageUrl}
-                alt={title}
-                fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                objectFit="cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
-              <div className="absolute bottom-3 left-3 flex items-center gap-2">
-                <span className="text-xl bg-white/95 backdrop-blur-sm rounded-full w-8 h-8 flex items-center justify-center shadow-sm">
-                  {categoryInfo.icon}
-                </span>
-                <span className="text-xs font-semibold text-white drop-shadow-md uppercase tracking-wider">{categoryInfo.label}</span>
-              </div>
+          <div className="relative h-48 w-full overflow-hidden border-b border-zinc-100">
+            <OptimizedImage
+              src={imageUrl || categoryInfo.defaultImage}
+              alt={title}
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              objectFit="cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
+            <div className="absolute bottom-3 left-3 flex items-center gap-2">
+              <span className="text-xl bg-white/95 backdrop-blur-sm rounded-full w-8 h-8 flex items-center justify-center shadow-sm">
+                {categoryInfo.icon}
+              </span>
+              <span className="text-xs font-semibold text-white drop-shadow-md uppercase tracking-wider">{categoryInfo.label}</span>
             </div>
-          )}
+          </div>
           <div className="p-6 flex flex-col flex-grow">
-            {!imageUrl && (
-              <div className="flex items-center gap-2 mb-3">
-                <span className="badge-subtle-primary">
-                  {categoryInfo.icon} {categoryInfo.label}
-                </span>
-              </div>
-            )}
             <h4 className="text-lg font-bold text-zinc-950 mb-1.5 line-clamp-1">{title}</h4>
             <p className="text-xs font-semibold text-zinc-500 mb-4">
               📅 {formattedDate}
@@ -695,32 +706,23 @@ const WorkshopCard = React.memo((props: {
           }}
           className="card-premium h-full overflow-hidden flex flex-col p-0 cursor-pointer border-transparent hover:border-[#00A8A8]/20 bg-white"
         >
-          {workshop.imageUrl && (
-            <div className="relative h-48 w-full overflow-hidden border-b border-zinc-100">
-              <OptimizedImage
-                src={workshop.imageUrl}
-                alt={workshop.title}
-                fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                objectFit="cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
-              <div className="absolute bottom-3 left-3 flex items-center gap-2">
-                <span className="text-xl bg-white/95 backdrop-blur-sm rounded-full w-8 h-8 flex items-center justify-center shadow-sm">
-                  {categoryInfo.icon}
-                </span>
-                <span className="text-xs font-semibold text-white drop-shadow-md uppercase tracking-wider">{categoryInfo.label}</span>
-              </div>
+          <div className="relative h-48 w-full overflow-hidden border-b border-zinc-100">
+            <OptimizedImage
+              src={workshop.imageUrl || categoryInfo.defaultImage}
+              alt={workshop.title}
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              objectFit="cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
+            <div className="absolute bottom-3 left-3 flex items-center gap-2">
+              <span className="text-xl bg-white/95 backdrop-blur-sm rounded-full w-8 h-8 flex items-center justify-center shadow-sm">
+                {categoryInfo.icon}
+              </span>
+              <span className="text-xs font-semibold text-white drop-shadow-md uppercase tracking-wider">{categoryInfo.label}</span>
             </div>
-          )}
+          </div>
           <div className="p-6 flex flex-col flex-grow">
-            {!workshop.imageUrl && (
-              <div className="flex items-center gap-2 mb-3">
-                <span className="badge-subtle-secondary">
-                  {categoryInfo.icon} {categoryInfo.label}
-                </span>
-              </div>
-            )}
             <h4 className="text-lg font-bold text-zinc-950 mb-1.5 line-clamp-1">{workshop.title}</h4>
             <p className="text-xs font-semibold text-zinc-500 mb-1">
               {scheduleText}

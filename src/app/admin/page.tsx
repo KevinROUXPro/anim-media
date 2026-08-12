@@ -252,6 +252,24 @@ function AdminContent() {
                       </Card>
                     </Link>
                   </motion.div>
+
+                  <motion.div variants={staggerItem}>
+                    <Link href="/vos-idees">
+                      <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full border-2 border-transparent hover:border-amber-500">
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2 text-xl">
+                            💡 Laboratoire d'Idées
+                          </CardTitle>
+                          <CardDescription className="text-base">
+                            Consulter, trier et suivre les votes de la communauté
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <Button className="w-full bg-amber-600 hover:bg-amber-700" size="lg">Voir les votes</Button>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  </motion.div>
                 </motion.div>
               </motion.div>
             </motion.div>

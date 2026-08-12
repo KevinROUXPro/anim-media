@@ -4,12 +4,14 @@ service cloud.firestore {
     // Fonction helper pour vérifier si l'utilisateur est admin
     function isAdmin() {
       return request.auth != null && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADMIN';
     }
     
     // Fonction helper pour vérifier si l'utilisateur est adhérent actif
     function isActiveMember() {
       return request.auth != null && 
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.membershipStatus == 'ACTIVE';
     }
     
@@ -34,9 +36,11 @@ service cloud.firestore {
     
     // Utilisateurs
     match /users/{userId} {
-      // Lecture uniquement pour l'utilisateur lui-même ou les admins (sécurité RGPD)
-      allow read: if request.auth != null && 
+      // Lecture individuelle uniquement pour l'utilisateur lui-même ou les admins
+      allow get: if request.auth != null && 
                     (request.auth.uid == userId || isAdmin());
+      // Autoriser les requêtes de liste pour les utilisateurs authentifiés (ex: vérification 1er admin)
+      allow list: if request.auth != null;
       
       // Création avec validation
       allow create: if request.auth != null &&
@@ -80,12 +84,15 @@ service cloud.firestore {
                       (!('currentParticipants' in request.resource.data) ||
                        isValidNumber(request.resource.data.currentParticipants, 0, 1000));
       
-      // Mise à jour avec validation
-      allow update: if isAdmin() &&
+      // Mise à jour avec validation (Admin complet OU Utilisateur authentifié modifiant uniquement les jauges)
+      allow update: if (isAdmin() &&
                       isValidString(request.resource.data.title, 3, 200) &&
                       isValidString(request.resource.data.description, 10, 5000) &&
                       isValidString(request.resource.data.location, 3, 200) &&
-                      isValidString(request.resource.data.instructor, 2, 100);
+                      isValidString(request.resource.data.instructor, 2, 100)) ||
+                     (request.auth != null &&
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['currentParticipants', 'updatedAt']) &&
+                      isValidNumber(request.resource.data.currentParticipants, 0, 1000));
       
       // Suppression uniquement pour les admins
       allow delete: if isAdmin();
@@ -108,11 +115,14 @@ service cloud.firestore {
                       (!('currentParticipants' in request.resource.data) ||
                        isValidNumber(request.resource.data.currentParticipants, 0, 1000));
       
-      // Mise à jour avec validation
-      allow update: if isAdmin() &&
+      // Mise à jour avec validation (Admin complet OU Utilisateur authentifié modifiant uniquement les jauges)
+      allow update: if (isAdmin() &&
                       isValidString(request.resource.data.title, 3, 200) &&
                       isValidString(request.resource.data.description, 10, 5000) &&
-                      isValidString(request.resource.data.location, 3, 200);
+                      isValidString(request.resource.data.location, 3, 200)) ||
+                     (request.auth != null &&
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['currentParticipants', 'updatedAt']) &&
+                      isValidNumber(request.resource.data.currentParticipants, 0, 1000));
       
       // Suppression uniquement pour les admins
       allow delete: if isAdmin();
@@ -120,8 +130,7 @@ service cloud.firestore {
     
     // Inscriptions
     match /registrations/{registrationId} {
-      allow read: if request.auth != null && 
-                    (resource.data.userId == request.auth.uid || isAdmin());
+      allow read: if request.auth != null;
       
       // Création avec validation
       allow create: if request.auth != null && 
@@ -142,27 +151,26 @@ service cloud.firestore {
       // Lecture publique pour tous
       allow read: if true;
       
-      // Création uniquement pour les adhérents actifs avec validation
-      allow create: if isActiveMember() && 
-                      request.resource.data.userId == request.auth.uid &&
-                      isValidString(request.resource.data.title, 3, 200) &&
-                      isValidString(request.resource.data.description, 10, 2000) &&
-                      request.resource.data.category in ['ARTS_CREATIFS', 'LECTURE_ECRITURE', 'NUMERIQUE', 'PATRIMOINE', 'ARTS_VIVANTS', 'JEUX_LOISIRS', 'AUTRE'] &&
-                      request.resource.data.likes is list &&
-                      request.resource.data.likes.size() == 0;
+      // Création pour les utilisateurs authentifiés
+      allow create: if request.auth != null;
       
-      // Mise à jour uniquement pour les likes (via arrayUnion/arrayRemove)
-      // Ou pour l'auteur ou un admin
-      allow update: if request.auth != null && 
-                      (resource.data.userId == request.auth.uid || isAdmin()) &&
-                      (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['title', 'description', 'category']) ||
-                       resource.data.userId == request.auth.uid || isAdmin());
+      // Mise à jour (likes, commentaires, statuts)
+      allow update: if request.auth != null;
       
       // Suppression uniquement pour l'auteur ou un admin
       allow delete: if request.auth != null && 
                       (resource.data.userId == request.auth.uid || isAdmin());
     }
     
+    // Galerie de moments participatifs (Instants Anim'Media)
+    match /moments/{momentId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
+      allow delete: if request.auth != null && 
+                      (resource.data.userId == request.auth.uid || isAdmin());
+    }
+
     // Comptes rendus d'AG
     match /agReports/{reportId} {
       // Lecture uniquement pour les adhérents actifs

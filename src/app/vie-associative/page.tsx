@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useState } from 'react';
 import { collection, query, getDocs, orderBy } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { AGReport, AGReportDoc } from '@/types';
+import { AGReport, AGReportDoc, MembershipStatus } from '@/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
@@ -31,7 +31,10 @@ function VieAssociativeContent() {
 
   useEffect(() => {
     async function fetchReports() {
-      if (!user) return;
+      if (!user || user.membershipStatus !== MembershipStatus.ACTIVE) {
+        setLoading(false);
+        return;
+      }
 
       setLoading(true);
       try {

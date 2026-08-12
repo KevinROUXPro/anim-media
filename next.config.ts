@@ -6,31 +6,11 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'firebasestorage.googleapis.com',
+        hostname: '**',
       },
       {
-        protocol: 'https',
-        hostname: 'www.unjourunjeu.fr',
-      },
-      {
-        protocol: 'https',
-        hostname: 'bigmedia.bpifrance.fr',
-      },
-      {
-        protocol: 'https',
-        hostname: '**.unsplash.com',
-      },
-      {
-        protocol: 'https',
-        hostname: '**.imgur.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'imgs.search.brave.com',
-      },
-      {
-        protocol: 'https',
-        hostname: '**.freepik.com',
+        protocol: 'http',
+        hostname: '**',
       },
     ],
     // Optimisation des images

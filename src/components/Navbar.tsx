@@ -38,6 +38,7 @@ export function Navbar() {
                 alt={LOGO_CONFIG.alt}
                 width={120}
                 height={40}
+                style={{ width: 'auto', height: 'auto' }}
                 className="object-contain drop-shadow-sm h-10 w-auto"
                 priority
               />

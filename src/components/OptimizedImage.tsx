@@ -68,7 +68,7 @@ export function OptimizedImage({
       };
 
   return (
-    <div className={cn('relative overflow-hidden', className)} style={fill ? undefined : { width, height }}>
+    <div className={cn('relative overflow-hidden', fill && 'w-full h-full', className)} style={fill ? undefined : { width, height }}>
       {isLoading && (
         <Skeleton 
           variant="rectangular" 

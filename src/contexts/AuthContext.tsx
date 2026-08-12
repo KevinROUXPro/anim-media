@@ -88,10 +88,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Mettre à jour le profil
     await updateProfile(firebaseUser, { displayName: name });
 
-    // Vérifier si c'est le premier utilisateur en comptant les documents dans la collection users
-    const usersQuery = query(collection(db, 'users'), limit(1));
-    const usersSnapshot = await getDocs(usersQuery);
-    const isFirstUser = usersSnapshot.empty;
+    // Vérifier si c'est le premier utilisateur
+    let isFirstUser = false;
+    try {
+      const usersQuery = query(collection(db, 'users'), limit(1));
+      const usersSnapshot = await getDocs(usersQuery);
+      isFirstUser = usersSnapshot.empty;
+    } catch (err) {
+      console.error('Erreur lors de la vérification du premier utilisateur:', err);
+      isFirstUser = false;
+    }
 
     // Créer le document utilisateur dans Firestore
     await setDoc(doc(db, 'users', firebaseUser.uid), {

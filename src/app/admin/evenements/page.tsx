@@ -86,7 +86,7 @@ export default function AdminEventsPage() {
         category: formData.category,
         requiresRegistration: formData.requiresRegistration,
         maxParticipants: formData.maxParticipants,
-        currentParticipants: 0,
+        currentParticipants: editingEvent ? (editingEvent.currentParticipants || 0) : 0,
         imageUrl: formData.imageUrl || undefined,
         updatedAt: Timestamp.now(),
       };

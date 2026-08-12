@@ -4,14 +4,11 @@ import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { collection, query, orderBy, getDocs, where, limit as firestoreLimit, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Workshop, ActivityCategory, CATEGORY_LABELS, LEVEL_LABELS } from '@/types';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { THEME_CLASSES } from '@/config/theme';
 import { fadeInUp, staggerContainer, staggerItem, bounceIn } from '@/lib/animations';
 import { formatWorkshopSchedule, getNextSession } from '@/lib/workshop-utils';
 import { cache, CacheKeys } from '@/lib/cache';
@@ -311,43 +308,34 @@ const WorkshopCard = React.memo(({ workshop, index }: { workshop: Workshop; inde
           }}
           className="card-premium h-full overflow-hidden flex flex-col p-0 cursor-pointer border-transparent hover:border-[#00A8A8]/20 bg-white"
         >
-          {workshop.imageUrl && (
-            <div className="h-48 w-full relative overflow-hidden border-b border-zinc-100">
-              <OptimizedImage
-                src={workshop.imageUrl}
-                alt={workshop.title}
-                fill
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                objectFit="cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent"></div>
-              {/* Badge inscription sur l'image */}
-              {workshop.requiresRegistration && (
-                <div className="absolute top-3 right-3 bg-emerald-500/90 text-white backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold shadow-sm">
-                  Inscription requise
-                </div>
-              )}
-              {!workshop.requiresRegistration && (
-                <div className="absolute top-3 right-3 bg-zinc-900/85 text-white backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold shadow-sm">
-                  Accès libre
-                </div>
-              )}
-              <div className="absolute bottom-3 left-3 flex items-center gap-1.5">
-                <span className="text-lg bg-white/95 rounded-full w-7 h-7 flex items-center justify-center shadow-sm">
-                  {categoryInfo.icon}
-                </span>
-                <span className="text-xs font-semibold text-white drop-shadow-md uppercase tracking-wider">{categoryInfo.label}</span>
-              </div>
-            </div>
-          )}
-          <div className="p-6 flex flex-col flex-grow">
-            {!workshop.imageUrl && (
-              <div className="flex items-center gap-2 mb-3">
-                <span className="badge-subtle-secondary">
-                  {categoryInfo.icon} {categoryInfo.label}
-                </span>
+          <div className="h-48 w-full relative overflow-hidden border-b border-zinc-100">
+            <OptimizedImage
+              src={workshop.imageUrl || categoryInfo.defaultImage}
+              alt={workshop.title}
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              objectFit="cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent"></div>
+            {/* Badge inscription sur l'image */}
+            {workshop.requiresRegistration && (
+              <div className="absolute top-3 right-3 bg-emerald-500/90 text-white backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold shadow-sm">
+                Inscription requise
               </div>
             )}
+            {!workshop.requiresRegistration && (
+              <div className="absolute top-3 right-3 bg-zinc-900/85 text-white backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold shadow-sm">
+                Accès libre
+              </div>
+            )}
+            <div className="absolute bottom-3 left-3 flex items-center gap-1.5">
+              <span className="text-lg bg-white/95 rounded-full w-7 h-7 flex items-center justify-center shadow-sm">
+                {categoryInfo.icon}
+              </span>
+              <span className="text-xs font-semibold text-white drop-shadow-md uppercase tracking-wider">{categoryInfo.label}</span>
+            </div>
+          </div>
+          <div className="p-6 flex flex-col flex-grow">
             <h4 className="text-lg font-bold text-zinc-950 mb-2 line-clamp-1">{workshop.title}</h4>
             <div className="text-xs font-medium text-zinc-500 space-y-1 mb-4">
               {workshop.isRecurring ? (

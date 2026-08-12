@@ -20,15 +20,43 @@ export enum SkillLevel {
   AVANCE = 'AVANCE',
 }
 
-// Labels pour l'affichage
-export const CATEGORY_LABELS: Record<ActivityCategory, { label: string; icon: string }> = {
-  [ActivityCategory.ARTS_CREATIFS]: { label: 'Arts Créatifs', icon: '🧶' },
-  [ActivityCategory.LECTURE_ECRITURE]: { label: 'Lecture & Écriture', icon: '📚' },
-  [ActivityCategory.NUMERIQUE]: { label: 'Numérique', icon: '💻' },
-  [ActivityCategory.PATRIMOINE]: { label: 'Patrimoine', icon: '🌳' },
-  [ActivityCategory.ARTS_VIVANTS]: { label: 'Arts Vivants', icon: '🎭' },
-  [ActivityCategory.JEUX_LOISIRS]: { label: 'Jeux & Loisirs', icon: '🎲' },
-  [ActivityCategory.AUTRE]: { label: 'Autre', icon: '🌍' },
+// Labels et images par défaut pour l'affichage
+export const CATEGORY_LABELS: Record<ActivityCategory, { label: string; icon: string; defaultImage: string }> = {
+  [ActivityCategory.ARTS_CREATIFS]: { 
+    label: 'Arts Créatifs', 
+    icon: '🧶',
+    defaultImage: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=800&auto=format&fit=crop'
+  },
+  [ActivityCategory.LECTURE_ECRITURE]: { 
+    label: 'Lecture & Écriture', 
+    icon: '📚',
+    defaultImage: 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?q=80&w=800&auto=format&fit=crop'
+  },
+  [ActivityCategory.NUMERIQUE]: { 
+    label: 'Numérique', 
+    icon: '💻',
+    defaultImage: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=800&auto=format&fit=crop'
+  },
+  [ActivityCategory.PATRIMOINE]: { 
+    label: 'Patrimoine', 
+    icon: '🌳',
+    defaultImage: 'https://images.unsplash.com/photo-1448375240586-882707db888b?q=80&w=800&auto=format&fit=crop'
+  },
+  [ActivityCategory.ARTS_VIVANTS]: { 
+    label: 'Arts Vivants', 
+    icon: '🎭',
+    defaultImage: 'https://images.unsplash.com/photo-1460723237483-7a6dc9d0b212?q=80&w=800&auto=format&fit=crop'
+  },
+  [ActivityCategory.JEUX_LOISIRS]: { 
+    label: 'Jeux & Loisirs', 
+    icon: '🎲',
+    defaultImage: 'https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?q=80&w=800&auto=format&fit=crop'
+  },
+  [ActivityCategory.AUTRE]: { 
+    label: 'Autre', 
+    icon: '🌍',
+    defaultImage: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=800&auto=format&fit=crop'
+  },
 };
 
 export const LEVEL_LABELS: Record<SkillLevel, string> = {
@@ -57,6 +85,14 @@ export interface CancellationPeriod {
 }
 
 // Types de base
+export interface UserBadge {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  unlockedAt?: Date;
+}
+
 export interface User {
   id: string;
   email: string;
@@ -68,6 +104,9 @@ export interface User {
   membershipNumber?: string;
   membershipExpiry?: Date;
   membershipStartDate?: Date;
+  // Gamification & Badges
+  points?: number;
+  badges?: UserBadge[];
 }
 
 export interface Event {
@@ -145,6 +184,8 @@ export interface AGReport {
   updatedAt: Date;
 }
 
+export type SuggestionStatus = 'SUBMITTED' | 'UNDER_REVIEW' | 'APPROVED' | 'COMPLETED';
+
 export interface Suggestion {
   id: string;
   userId: string;
@@ -153,8 +194,22 @@ export interface Suggestion {
   description: string;
   category: ActivityCategory;
   likes: string[]; // Array of user IDs who liked
+  status?: SuggestionStatus;
+  adminComment?: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface CommunityMoment {
+  id: string;
+  userId: string;
+  userName: string;
+  imageUrl: string;
+  caption: string;
+  activityTitle?: string;
+  createdAt: Date;
+  likes: string[];
+  status: 'APPROVED' | 'PENDING';
 }
 
 import { Timestamp } from 'firebase/firestore';
@@ -203,4 +258,8 @@ export interface AGReportDoc extends Omit<AGReport, 'date' | 'createdAt' | 'upda
 export interface SuggestionDoc extends Omit<Suggestion, 'createdAt' | 'updatedAt'> {
   createdAt: Timestamp;
   updatedAt: Timestamp;
+}
+
+export interface CommunityMomentDoc extends Omit<CommunityMoment, 'createdAt'> {
+  createdAt: Timestamp;
 }

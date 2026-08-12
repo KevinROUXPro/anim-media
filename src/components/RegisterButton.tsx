@@ -29,6 +29,7 @@ export function RegisterButton({
 
   // Fonction pour synchroniser le compteur de participants avec la réalité
   const syncParticipantCount = useCallback(async () => {
+    if (!user) return 0;
     try {
       const field = activityType === 'event' ? 'eventId' : 'workshopId';
       const q = query(
@@ -42,15 +43,16 @@ export function RegisterButton({
       const collectionName = activityType === 'event' ? 'events' : 'workshops';
       const activityRef = doc(db, collectionName, activityId);
       await updateDoc(activityRef, {
-        currentParticipants: actualCount
+        currentParticipants: actualCount,
+        updatedAt: Timestamp.now(),
       });
       
       return actualCount;
-    } catch (error) {
-      console.error('Error syncing participant count:', error);
+    } catch (err) {
+      console.error('Error syncing participant count:', err);
       return 0;
     }
-  }, [activityId, activityType]);
+  }, [activityId, activityType, user]);
 
   useEffect(() => {
     async function checkRegistration() {
@@ -213,9 +215,62 @@ export function RegisterButton({
     <div className="space-y-3 w-full flex flex-col items-center">
       {isRegistered ? (
         <>
-          <div className="bg-green-100 border-2 border-green-500 rounded-lg p-4 text-center w-full max-w-md">
-            <p className="text-green-700 font-semibold mb-2">✅ Vous êtes inscrit !</p>
-            <p className="text-sm text-green-600">Nous avons hâte de vous voir.</p>
+          <div className="bg-green-100 border-2 border-green-500 rounded-lg p-4 text-center w-full max-w-md shadow-sm">
+            <p className="text-green-700 font-semibold mb-1">✅ Vous êtes inscrit !</p>
+            <p className="text-xs text-green-600 mb-3">Nous avons hâte de vous compter parmi nous.</p>
+            
+            {/* Options d'export calendrier */}
+            <div className="flex flex-wrap items-center justify-center gap-2 pt-2 border-t border-green-200">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="bg-white hover:bg-green-50 text-green-700 border-green-300 text-xs"
+                onClick={async () => {
+                  const collectionName = activityType === 'event' ? 'events' : 'workshops';
+                  const docSnap = await getDoc(doc(db, collectionName, activityId));
+                  if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    const { getGoogleCalendarUrl } = await import('@/lib/calendar-utils');
+                    const url = getGoogleCalendarUrl({
+                      title: data.title,
+                      description: data.description || '',
+                      location: data.location,
+                      date: data.date?.toDate?.() || data.startDate?.toDate?.(),
+                      startTime: data.startTime,
+                      endTime: data.endTime,
+                    });
+                    window.open(url, '_blank');
+                  }
+                }}
+              >
+                📅 Google Calendar
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="bg-white hover:bg-green-50 text-green-700 border-green-300 text-xs"
+                onClick={async () => {
+                  const collectionName = activityType === 'event' ? 'events' : 'workshops';
+                  const docSnap = await getDoc(doc(db, collectionName, activityId));
+                  if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    const { downloadICSFile } = await import('@/lib/calendar-utils');
+                    downloadICSFile({
+                      title: data.title,
+                      description: data.description || '',
+                      location: data.location,
+                      date: data.date?.toDate?.() || data.startDate?.toDate?.(),
+                      startTime: data.startTime,
+                      endTime: data.endTime,
+                    });
+                  }
+                }}
+              >
+                📥 Fichier .ics
+              </Button>
+            </div>
           </div>
           <Button 
             variant="outline" 

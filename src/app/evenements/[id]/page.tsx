@@ -32,8 +32,8 @@ export default function EventDetailPage() {
         
         let actualParticipants = data.currentParticipants || 0;
         
-        // Calculer le vrai nombre de participants uniquement si l'utilisateur est connecté
-        if (user) {
+        // Calculer le vrai nombre de participants uniquement si l'utilisateur est admin
+        if (user && user.role === 'ADMIN') {
           try {
             const q = query(
               collection(db, 'registrations'),
@@ -42,8 +42,6 @@ export default function EventDetailPage() {
             const registrationsSnapshot = await getDocs(q);
             actualParticipants = registrationsSnapshot.size;
           } catch {
-            console.warn('Cannot count registrations (not logged in or insufficient permissions)');
-            // Utiliser la valeur du document si on ne peut pas compter
             actualParticipants = data.currentParticipants || 0;
           }
         }
@@ -253,8 +251,11 @@ export default function EventDetailPage() {
                       </div>
                     )}
                     
-                    {/* Bouton d'inscription intégré dans la section */}
-                    {!isPast && (
+                    {isPast ? (
+                      <div className="bg-gray-100 border border-gray-300 rounded-lg p-4 text-center">
+                        <p className="text-gray-600 font-semibold">⏰ Cet événement est passé. Les inscriptions sont fermées.</p>
+                      </div>
+                    ) : (
                       <motion.div 
                         className="pt-4 border-t border-gray-300"
                         initial={{ opacity: 0, y: 20 }}
