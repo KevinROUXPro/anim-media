@@ -178,7 +178,13 @@ export interface AGReport {
   title: string;
   description: string;
   date: Date;
-  pdfUrl: string;
+  /**
+   * Chemin du PDF dans Firebase Storage (ex: "ag-reports/1700000000_ag.pdf").
+   * On stocke le chemin et non une URL getDownloadURL : ces URL portent un
+   * jeton d'acces qui contourne les regles Storage et rendrait les comptes
+   * rendus telechargeables par n'importe qui.
+   */
+  storagePath: string;
   fileName: string;
   createdAt: Date;
   updatedAt: Date;

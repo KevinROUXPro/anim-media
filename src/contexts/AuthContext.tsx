@@ -9,7 +9,7 @@ import {
   signOut as firebaseSignOut,
   updateProfile,
 } from 'firebase/auth';
-import { doc, getDoc, setDoc, Timestamp, collection, getDocs, limit, query } from 'firebase/firestore';
+import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { User, UserRole, MembershipStatus } from '@/types';
 import { cache, CacheKeys } from '@/lib/cache';
@@ -88,33 +88,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Mettre à jour le profil
     await updateProfile(firebaseUser, { displayName: name });
 
-    // Vérifier si c'est le premier utilisateur
-    let isFirstUser = false;
-    try {
-      const usersQuery = query(collection(db, 'users'), limit(1));
-      const usersSnapshot = await getDocs(usersQuery);
-      isFirstUser = usersSnapshot.empty;
-    } catch (err) {
-      console.error('Erreur lors de la vérification du premier utilisateur:', err);
-      isFirstUser = false;
-    }
-
-    // Créer le document utilisateur dans Firestore
+    // Tout nouveau compte est créé en simple utilisateur, sans adhésion.
+    //
+    // Le mécanisme « le premier inscrit devient admin » a été retiré : il
+    // reposait sur une lecture de toute la collection `users`, ce qui
+    // exposait l'annuaire des membres à n'importe quel compte, et il se
+    // déclenchait à nouveau si la collection était vidée.
+    //
+    // Le premier administrateur se promeut une seule fois à la main :
+    // console Firebase > Firestore > users/{uid} > role: "ADMIN".
+    // Les suivants sont promus depuis /admin/utilisateurs.
     await setDoc(doc(db, 'users', firebaseUser.uid), {
       id: firebaseUser.uid,
       email: firebaseUser.email,
       name,
-      role: isFirstUser ? UserRole.ADMIN : UserRole.USER,
+      role: UserRole.USER,
       createdAt: Timestamp.now(),
       membershipStatus: MembershipStatus.NONE,
-    });
-
-    // Log pour déboguer
-    console.log('Nouvel utilisateur créé:', {
-      name,
-      email,
-      role: isFirstUser ? 'ADMIN' : 'USER',
-      isFirstUser
     });
   };
 

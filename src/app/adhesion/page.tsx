@@ -5,11 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { motion } from 'framer-motion';
-import { useState } from 'react';
-import { doc, updateDoc, Timestamp } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
 import { MembershipStatus } from '@/types';
-import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { THEME_CLASSES } from '@/config/theme';
 import { bounceIn, fadeInUp, staggerContainer, staggerItem } from '@/lib/animations';
@@ -24,47 +20,13 @@ export default function AdhesionPage() {
 }
 
 function AdhesionContent() {
-  const { user, refreshUser } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
 
-  const handleSubscribe = async () => {
-    if (!user) return;
-
-    setLoading(true);
-    try {
-      const membershipStartDate = new Date();
-      const membershipExpiry = new Date();
-      membershipExpiry.setFullYear(membershipExpiry.getFullYear() + 1);
-
-      // Générer un numéro d'adhérent
-      const membershipNumber = `ADH${new Date().getFullYear()}${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`;
-
-      await updateDoc(doc(db, 'users', user.id), {
-        membershipStatus: MembershipStatus.ACTIVE,
-        membershipNumber,
-        membershipStartDate: Timestamp.fromDate(membershipStartDate),
-        membershipExpiry: Timestamp.fromDate(membershipExpiry),
-      });
-
-      // Rafraîchir les données utilisateur
-      await refreshUser();
-      
-      toast.success('Adhésion activée avec succès ! 🎉', {
-        description: `Votre numéro d'adhérent : ${membershipNumber}`,
-      });
-
-      // Rediriger vers le profil après 2 secondes
-      setTimeout(() => {
-        router.push('/profil');
-      }, 2000);
-    } catch (error) {
-      console.error('Error subscribing:', error);
-      toast.error('Erreur lors de l\'activation de l\'adhésion');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // L'adhésion n'est plus activable depuis le navigateur : les champs
+  // membership* sont réservés aux administrateurs par les règles Firestore.
+  // Le règlement (15 €, espèces ou chèque) est encaissé au local, puis un
+  // membre du bureau active l'adhésion depuis /admin/adherents.
 
   // Si déjà adhérent actif
   if (user?.membershipStatus === MembershipStatus.ACTIVE) {
@@ -143,38 +105,46 @@ function AdhesionContent() {
               </div>
               <p className="text-2xl text-gray-700 mb-6">par an seulement</p>
               
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="w-full"
-              >
-                <Button
-                  onClick={handleSubscribe}
-                  disabled={loading}
-                  size="lg"
-                  className={`w-full ${THEME_CLASSES.buttonPrimary} text-xl sm:text-2xl py-6 sm:py-8 px-8 sm:px-12 h-auto font-bold shadow-xl`}
-                >
-                  {loading ? (
-                    <span className="flex items-center gap-2">
-                      <motion.div
-                        className="h-5 w-5 sm:h-6 sm:w-6 border-4 border-white border-t-transparent rounded-full"
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                      />
-                      Activation en cours...
+              <div className="bg-white/80 border-2 border-[#F49928] rounded-xl p-6 sm:p-8 text-left">
+                <h3 className="flex items-center justify-center text-xl sm:text-2xl font-bold text-[#DE3156] mb-6">
+                  <Star className="h-6 w-6 sm:h-7 sm:w-7 mr-2 sm:mr-3" />
+                  Comment adhérer ?
+                  <Star className="h-6 w-6 sm:h-7 sm:w-7 ml-2 sm:ml-3" />
+                </h3>
+
+                <ol className="space-y-4 text-base sm:text-lg text-gray-700">
+                  <li className="flex items-start gap-3">
+                    <span className="flex-shrink-0 w-8 h-8 rounded-full bg-[#DE3156] text-white font-bold flex items-center justify-center">1</span>
+                    <span>
+                      Votre compte est déjà créé : c&apos;est celui avec lequel vous êtes connecté.
                     </span>
-                  ) : (
-                    <span className="flex items-center justify-center">
-                      <Star className="h-6 w-6 sm:h-8 sm:w-8 mr-2 sm:mr-3" />
-                      Adhérer Maintenant
-                      <Star className="h-6 w-6 sm:h-8 sm:w-8 ml-2 sm:ml-3" />
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="flex-shrink-0 w-8 h-8 rounded-full bg-[#DE3156] text-white font-bold flex items-center justify-center">2</span>
+                    <span>
+                      Présentez-vous au local de l&apos;association avec votre règlement de{' '}
+                      <strong>15 €</strong>, en espèces ou par chèque à l&apos;ordre d&apos;Anim&apos;Média.
                     </span>
-                  )}
-                </Button>
-              </motion.div>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="flex-shrink-0 w-8 h-8 rounded-full bg-[#DE3156] text-white font-bold flex items-center justify-center">3</span>
+                    <span>
+                      Un membre du bureau active votre adhésion et vous attribue votre
+                      numéro d&apos;adhérent.
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="flex-shrink-0 w-8 h-8 rounded-full bg-[#DE3156] text-white font-bold flex items-center justify-center">4</span>
+                    <span>
+                      Votre carte d&apos;adhérent et vos avantages apparaissent aussitôt dans
+                      votre profil.
+                    </span>
+                  </li>
+                </ol>
+              </div>
 
               <p className="text-xs sm:text-sm text-gray-500 mt-4 sm:mt-6 text-center">
-                ⚠️ Mode démo : L'adhésion est activée immédiatement sans paiement réel
+                L&apos;adhésion est enregistrée par l&apos;association après encaissement du règlement.
               </p>
             </CardContent>
           </Card>

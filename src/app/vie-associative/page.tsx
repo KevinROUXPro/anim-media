@@ -14,6 +14,8 @@ import { fr } from 'date-fns/locale';
 import { THEME_CLASSES } from '@/config/theme';
 import { fadeInUp, staggerContainer, staggerItem } from '@/lib/animations';
 import { FileText, Calendar, Download, Eye } from 'lucide-react';
+import { downloadReport, getReportObjectUrl, releaseReportUrl } from '@/lib/ag-reports';
+import { toast } from 'sonner';
 
 export default function VieAssociativePage() {
   return (
@@ -28,6 +30,36 @@ function VieAssociativeContent() {
   const [reports, setReports] = useState<AGReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedReport, setSelectedReport] = useState<AGReport | null>(null);
+  // Les PDF sont recuperes via le SDK (getBlob), soumis aux regles Storage,
+  // puis affiches depuis une URL blob locale valable le temps de l'apercu.
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+
+  const openPreview = async (report: AGReport) => {
+    setSelectedReport(report);
+    setPreviewLoading(true);
+    try {
+      const url = await getReportObjectUrl(report.storagePath);
+      setPreviewUrl(url);
+    } catch (error) {
+      console.error("Erreur lors de l'ouverture du compte rendu:", error);
+      toast.error("Impossible d'ouvrir ce compte rendu");
+      setSelectedReport(null);
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
+  const closePreview = () => {
+    releaseReportUrl(previewUrl);
+    setPreviewUrl(null);
+    setSelectedReport(null);
+  };
+
+  // Liberer le blob si la page est quittee avec l'apercu ouvert.
+  useEffect(() => {
+    return () => releaseReportUrl(previewUrl);
+  }, [previewUrl]);
 
   useEffect(() => {
     async function fetchReports() {
@@ -128,7 +160,7 @@ function VieAssociativeContent() {
                       <p className="text-gray-600 mb-4 line-clamp-3">{report.description}</p>
                       <div className="flex gap-2">
                         <Button
-                          onClick={() => setSelectedReport(report)}
+                          onClick={() => openPreview(report)}
                           className={THEME_CLASSES.buttonPrimary}
                           size="sm"
                         >
@@ -136,7 +168,14 @@ function VieAssociativeContent() {
                           Consulter
                         </Button>
                         <Button
-                          onClick={() => window.open(report.pdfUrl, '_blank')}
+                          onClick={async () => {
+                            try {
+                              await downloadReport(report.storagePath, report.fileName);
+                            } catch (error) {
+                              console.error('Erreur lors du téléchargement:', error);
+                              toast.error('Impossible de télécharger ce compte rendu');
+                            }
+                          }}
                           variant="outline"
                           size="sm"
                         >
@@ -169,7 +208,7 @@ function VieAssociativeContent() {
                 </p>
               </div>
               <Button
-                onClick={() => setSelectedReport(null)}
+                onClick={closePreview}
                 variant="outline"
                 size="sm"
               >
@@ -177,11 +216,17 @@ function VieAssociativeContent() {
               </Button>
             </div>
             <div className="flex-1 overflow-hidden">
-              <iframe
-                src={selectedReport.pdfUrl}
-                className="w-full h-full"
-                title={selectedReport.title}
-              />
+              {previewLoading || !previewUrl ? (
+                <div className="w-full h-full flex items-center justify-center">
+                  <div className={`animate-spin rounded-full h-12 w-12 border-4 border-t-transparent ${THEME_CLASSES.borderPrimary}`} />
+                </div>
+              ) : (
+                <iframe
+                  src={previewUrl}
+                  className="w-full h-full"
+                  title={selectedReport.title}
+                />
+              )}
             </div>
           </motion.div>
         </div>

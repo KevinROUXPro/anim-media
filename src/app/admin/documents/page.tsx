@@ -15,8 +15,9 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { Plus, Edit, Trash2, ArrowLeft, FileText, Upload } from 'lucide-react';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { deleteObject, ref, uploadBytes } from 'firebase/storage';
 import { storage } from '@/lib/firebase';
+import { downloadReport } from '@/lib/ag-reports';
 
 export default function AdminDocumentsPage() {
   const { user, isAdmin } = useAuth();
@@ -81,14 +82,16 @@ export default function AdminDocumentsPage() {
     }
   };
 
-  const uploadPDF = async (file: File): Promise<{ url: string; fileName: string }> => {
-    const fileName = `ag-reports/${Date.now()}_${file.name}`;
-    const storageRef = ref(storage, fileName);
-    
+  // On conserve le chemin Storage, pas une URL getDownloadURL : une telle URL
+  // porte un jeton permanent qui rendrait le compte rendu accessible a tous,
+  // regles Storage ou non.
+  const uploadPDF = async (file: File): Promise<{ storagePath: string; fileName: string }> => {
+    const storagePath = `ag-reports/${Date.now()}_${file.name}`;
+    const storageRef = ref(storage, storagePath);
+
     await uploadBytes(storageRef, file);
-    const url = await getDownloadURL(storageRef);
-    
-    return { url, fileName: file.name };
+
+    return { storagePath, fileName: file.name };
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -106,13 +109,14 @@ export default function AdminDocumentsPage() {
 
     setUploading(true);
     try {
-      let pdfUrl = editingReport?.pdfUrl || '';
+      let storagePath = editingReport?.storagePath || '';
       let fileName = editingReport?.fileName || '';
+      const previousStoragePath = editingReport?.storagePath;
 
       // Upload nouveau PDF si fourni
       if (formData.pdfFile) {
         const uploadResult = await uploadPDF(formData.pdfFile);
-        pdfUrl = uploadResult.url;
+        storagePath = uploadResult.storagePath;
         fileName = uploadResult.fileName;
       }
 
@@ -122,13 +126,19 @@ export default function AdminDocumentsPage() {
         title: formData.title,
         description: formData.description,
         date: Timestamp.fromDate(reportDate),
-        pdfUrl,
+        storagePath,
         fileName,
         updatedAt: Timestamp.now(),
       };
 
       if (editingReport) {
         await updateDoc(doc(db, 'agReports', editingReport.id), reportData);
+
+        // Le PDF remplace l'ancien : on supprime le fichier devenu orphelin.
+        if (previousStoragePath && previousStoragePath !== storagePath) {
+          await deleteObject(ref(storage, previousStoragePath)).catch(() => {});
+        }
+
         toast.success('Document modifié avec succès');
       } else {
         await addDoc(collection(db, 'agReports'), {
@@ -165,7 +175,15 @@ export default function AdminDocumentsPage() {
     }
 
     try {
+      const report = reports.find(r => r.id === reportId);
+
       await deleteDoc(doc(db, 'agReports', reportId));
+
+      // Sans cela le PDF resterait indefiniment dans le bucket.
+      if (report?.storagePath) {
+        await deleteObject(ref(storage, report.storagePath)).catch(() => {});
+      }
+
       toast.success('Document supprimé avec succès');
       fetchReports();
     } catch (error) {
@@ -345,13 +363,20 @@ export default function AdminDocumentsPage() {
                 
                 <div className="flex gap-2">
                   <Button
-                    onClick={() => window.open(report.pdfUrl, '_blank')}
+                    onClick={async () => {
+                      try {
+                        await downloadReport(report.storagePath, report.fileName);
+                      } catch (error) {
+                        console.error('Error downloading report:', error);
+                        toast.error('Erreur lors du téléchargement du document');
+                      }
+                    }}
                     variant="outline"
                     size="sm"
                     className="flex-1"
                   >
                     <FileText className="h-4 w-4 mr-2" />
-                    Voir
+                    Télécharger
                   </Button>
                   <Button
                     onClick={() => handleEdit(report)}

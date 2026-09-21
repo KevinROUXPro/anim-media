@@ -3,14 +3,22 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   images: {
     formats: ['image/avif', 'image/webp'],
+    // Limité aux hôtes réellement utilisés : les images des activités
+    // (Firebase Storage) et les visuels par défaut des catégories (Unsplash).
+    // Un caractère générique laisserait n'importe qui faire relayer l'URL de
+    // son choix par l'optimiseur d'images.
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '**',
+        hostname: 'firebasestorage.googleapis.com',
       },
       {
-        protocol: 'http',
-        hostname: '**',
+        protocol: 'https',
+        hostname: '**.firebasestorage.app',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
       },
     ],
     // Optimisation des images

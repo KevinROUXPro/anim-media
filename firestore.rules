@@ -1,196 +1,316 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Fonction helper pour vérifier si l'utilisateur est admin
+
+    // ---------------------------------------------------------------------
+    // Helpers
+    // ---------------------------------------------------------------------
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
     function isAdmin() {
-      return request.auth != null && 
+      return isSignedIn() &&
              exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'ADMIN';
+             userData().role == 'ADMIN';
     }
-    
-    // Fonction helper pour vérifier si l'utilisateur est adhérent actif
+
+    // Adherent a jour : statut ACTIVE *et* date d'expiration non depassee.
+    // Sans le controle de date, une adhesion expiree resterait valable
+    // indefiniment.
     function isActiveMember() {
-      return request.auth != null && 
+      return isSignedIn() &&
              exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.membershipStatus == 'ACTIVE';
+             userData().membershipStatus == 'ACTIVE' &&
+             (!('membershipExpiry' in userData()) || userData().membershipExpiry > request.time);
     }
-    
-    // Fonction helper pour valider les chaînes de caractères
+
+    // Cles reellement modifiees par la requete en cours.
+    function changedKeys() {
+      return request.resource.data.diff(resource.data).affectedKeys();
+    }
+
+    // Un utilisateur ne peut ajouter ou retirer que SON propre identifiant
+    // dans un tableau de likes.
+    function onlyOwnLikeChanged() {
+      return request.resource.data.likes.toSet()
+               .difference(resource.data.likes.toSet()).hasOnly([request.auth.uid]) &&
+             resource.data.likes.toSet()
+               .difference(request.resource.data.likes.toSet()).hasOnly([request.auth.uid]);
+    }
+
     function isValidString(value, minLength, maxLength) {
-      return value is string && 
-             value.size() >= minLength && 
+      return value is string &&
+             value.size() >= minLength &&
              value.size() <= maxLength;
     }
-    
-    // Fonction helper pour valider les emails
+
     function isValidEmail(email) {
-      return email is string && 
+      return email is string &&
              email.matches('^[^@]+@[^@]+\\.[^@]+$') &&
              email.size() <= 254;
     }
-    
-    // Fonction helper pour valider les nombres
+
     function isValidNumber(value, min, max) {
       return value is int && value >= min && value <= max;
     }
-    
+
+    // ---------------------------------------------------------------------
     // Utilisateurs
+    // ---------------------------------------------------------------------
     match /users/{userId} {
-      // Lecture individuelle uniquement pour l'utilisateur lui-même ou les admins
-      allow get: if request.auth != null && 
-                    (request.auth.uid == userId || isAdmin());
-      // Autoriser les requêtes de liste pour les utilisateurs authentifiés (ex: vérification 1er admin)
-      allow list: if request.auth != null;
-      
-      // Création avec validation
-      allow create: if request.auth != null &&
+      allow get: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+
+      // L'annuaire des membres (noms, emails, numeros d'adherent) n'est
+      // lisible que par les administrateurs.
+      allow list: if isAdmin();
+
+      // A l'inscription, le compte est toujours cree en USER sans adhesion.
+      // Le tout premier administrateur se promeut a la main dans la console
+      // Firebase (users/{uid} -> role: "ADMIN"), une seule fois.
+      allow create: if isSignedIn() &&
                       request.auth.uid == userId &&
+                      request.resource.data.id == userId &&
                       isValidString(request.resource.data.name, 2, 100) &&
                       isValidEmail(request.resource.data.email) &&
+                      request.resource.data.role == 'USER' &&
+                      request.resource.data.membershipStatus == 'NONE' &&
+                      !request.resource.data.keys().hasAny(
+                        ['membershipNumber', 'membershipStartDate', 'membershipExpiry']);
+
+      // L'utilisateur ne peut modifier que son nom.
+      // Role, email, identifiant et champs d'adhesion lui sont interdits.
+      allow update: if isSignedIn() &&
+                      request.auth.uid == userId &&
+                      changedKeys().hasOnly(['name']) &&
+                      isValidString(request.resource.data.name, 2, 100);
+
+      // L'administrateur gere roles et adhesions, sans toucher a l'identite.
+      allow update: if isAdmin() &&
+                      !changedKeys().hasAny(['id', 'email']) &&
                       request.resource.data.role in ['USER', 'ADMIN'] &&
                       request.resource.data.membershipStatus in ['NONE', 'ACTIVE', 'EXPIRED'];
-      
-      // Mise à jour avec validation
-      allow update: if request.auth.uid == userId || isAdmin() &&
-                      (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['id', 'email']) ||
-                       isAdmin()) &&
-                      (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']) ||
-                       isAdmin());
-      
-      // Suppression uniquement pour les admins
-      allow delete: if isAdmin();
+
+      // Chacun peut supprimer son propre compte (droit a l'effacement, RGPD).
+      allow delete: if isSignedIn() &&
+                      (request.auth.uid == userId || isAdmin());
     }
-    
+
+    // ---------------------------------------------------------------------
     // Ateliers (lecture publique)
+    // ---------------------------------------------------------------------
+    function isValidWorkshopPayload() {
+      return isValidString(request.resource.data.title, 3, 200) &&
+             isValidString(request.resource.data.description, 10, 5000) &&
+             isValidString(request.resource.data.location, 3, 200) &&
+             isValidString(request.resource.data.instructor, 2, 100) &&
+             request.resource.data.category in ['ARTS_CREATIFS', 'LECTURE_ECRITURE', 'NUMERIQUE',
+                                                'PATRIMOINE', 'ARTS_VIVANTS', 'JEUX_LOISIRS', 'AUTRE'] &&
+             request.resource.data.level in ['DEBUTANT', 'INTERMEDIAIRE', 'AVANCE'] &&
+             request.resource.data.recurrenceDays is list &&
+             request.resource.data.recurrenceDays.size() > 0 &&
+             isValidNumber(request.resource.data.recurrenceInterval, 1, 4) &&
+             request.resource.data.startTime is string &&
+             request.resource.data.endTime is string &&
+             isValidNumber(request.resource.data.currentParticipants, 0, 1000) &&
+             (!('maxParticipants' in request.resource.data) ||
+              request.resource.data.maxParticipants == null ||
+              isValidNumber(request.resource.data.maxParticipants, 1, 1000));
+    }
+
     match /workshops/{workshopId} {
       allow read: if true;
-      
-      // Création avec validation stricte
+
       allow create: if isAdmin() &&
-                      isValidString(request.resource.data.title, 3, 200) &&
-                      isValidString(request.resource.data.description, 10, 5000) &&
-                      isValidString(request.resource.data.location, 3, 200) &&
-                      isValidString(request.resource.data.instructor, 2, 100) &&
-                      request.resource.data.category in ['ARTS_CREATIFS', 'LECTURE_ECRITURE', 'NUMERIQUE', 'PATRIMOINE', 'ARTS_VIVANTS', 'JEUX_LOISIRS', 'AUTRE'] &&
-                      request.resource.data.level in ['DEBUTANT', 'INTERMEDIAIRE', 'AVANCE'] &&
-                      request.resource.data.isRecurring == true &&
-                      request.resource.data.recurrenceDays is list &&
-                      request.resource.data.recurrenceDays.size() > 0 &&
-                      isValidNumber(request.resource.data.recurrenceInterval, 1, 4) &&
-                      request.resource.data.startTime is string &&
-                      request.resource.data.endTime is string &&
-                      (!('maxParticipants' in request.resource.data) ||
-                       isValidNumber(request.resource.data.maxParticipants, 1, 1000)) &&
-                      (!('currentParticipants' in request.resource.data) ||
-                       isValidNumber(request.resource.data.currentParticipants, 0, 1000));
-      
-      // Mise à jour avec validation (Admin complet OU Utilisateur authentifié modifiant uniquement les jauges)
-      allow update: if (isAdmin() &&
-                      isValidString(request.resource.data.title, 3, 200) &&
-                      isValidString(request.resource.data.description, 10, 5000) &&
-                      isValidString(request.resource.data.location, 3, 200) &&
-                      isValidString(request.resource.data.instructor, 2, 100)) ||
-                     (request.auth != null &&
-                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['currentParticipants', 'updatedAt']) &&
-                      isValidNumber(request.resource.data.currentParticipants, 0, 1000));
-      
-      // Suppression uniquement pour les admins
+                      isValidWorkshopPayload() &&
+                      request.resource.data.isRecurring == true;
+
+      allow update: if isAdmin() && isValidWorkshopPayload();
+
+      // Inscription : la jauge ne bouge que de +1, uniquement si l'inscription
+      // correspondante existe, et jamais au-dela de la capacite annoncee.
+      allow update: if isSignedIn() &&
+                      changedKeys().hasOnly(['currentParticipants', 'updatedAt']) &&
+                      request.resource.data.currentParticipants == resource.data.currentParticipants + 1 &&
+                      (!('maxParticipants' in resource.data) ||
+                       resource.data.maxParticipants == null ||
+                       request.resource.data.currentParticipants <= resource.data.maxParticipants) &&
+                      exists(/databases/$(database)/documents/registrations/$(request.auth.uid + '_' + workshopId));
+
+      // Desinscription : -1, uniquement une fois l'inscription supprimee.
+      allow update: if isSignedIn() &&
+                      changedKeys().hasOnly(['currentParticipants', 'updatedAt']) &&
+                      request.resource.data.currentParticipants == resource.data.currentParticipants - 1 &&
+                      request.resource.data.currentParticipants >= 0 &&
+                      !exists(/databases/$(database)/documents/registrations/$(request.auth.uid + '_' + workshopId));
+
       allow delete: if isAdmin();
     }
-    
-    // Événements (lecture publique)
+
+    // ---------------------------------------------------------------------
+    // Evenements (lecture publique)
+    // ---------------------------------------------------------------------
+    function isValidEventPayload() {
+      return isValidString(request.resource.data.title, 3, 200) &&
+             isValidString(request.resource.data.description, 10, 5000) &&
+             isValidString(request.resource.data.location, 3, 200) &&
+             request.resource.data.category in ['ARTS_CREATIFS', 'LECTURE_ECRITURE', 'NUMERIQUE',
+                                                'PATRIMOINE', 'ARTS_VIVANTS', 'JEUX_LOISIRS', 'AUTRE'] &&
+             request.resource.data.date is timestamp &&
+             request.resource.data.date > timestamp.date(2020, 1, 1) &&
+             isValidNumber(request.resource.data.currentParticipants, 0, 1000) &&
+             (!('maxParticipants' in request.resource.data) ||
+              request.resource.data.maxParticipants == null ||
+              isValidNumber(request.resource.data.maxParticipants, 1, 1000));
+    }
+
     match /events/{eventId} {
       allow read: if true;
-      
-      // Création avec validation stricte
-      allow create: if isAdmin() &&
-                      isValidString(request.resource.data.title, 3, 200) &&
-                      isValidString(request.resource.data.description, 10, 5000) &&
-                      isValidString(request.resource.data.location, 3, 200) &&
-                      request.resource.data.category in ['ARTS_CREATIFS', 'LECTURE_ECRITURE', 'NUMERIQUE', 'PATRIMOINE', 'ARTS_VIVANTS', 'JEUX_LOISIRS', 'AUTRE'] &&
-                      request.resource.data.date is timestamp &&
-                      request.resource.data.date > timestamp.date(2020, 1, 1) &&
-                      (!('maxParticipants' in request.resource.data) ||
-                       isValidNumber(request.resource.data.maxParticipants, 1, 1000)) &&
-                      (!('currentParticipants' in request.resource.data) ||
-                       isValidNumber(request.resource.data.currentParticipants, 0, 1000));
-      
-      // Mise à jour avec validation (Admin complet OU Utilisateur authentifié modifiant uniquement les jauges)
-      allow update: if (isAdmin() &&
-                      isValidString(request.resource.data.title, 3, 200) &&
-                      isValidString(request.resource.data.description, 10, 5000) &&
-                      isValidString(request.resource.data.location, 3, 200)) ||
-                     (request.auth != null &&
-                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['currentParticipants', 'updatedAt']) &&
-                      isValidNumber(request.resource.data.currentParticipants, 0, 1000));
-      
-      // Suppression uniquement pour les admins
+
+      allow create: if isAdmin() && isValidEventPayload();
+      allow update: if isAdmin() && isValidEventPayload();
+
+      allow update: if isSignedIn() &&
+                      changedKeys().hasOnly(['currentParticipants', 'updatedAt']) &&
+                      request.resource.data.currentParticipants == resource.data.currentParticipants + 1 &&
+                      (!('maxParticipants' in resource.data) ||
+                       resource.data.maxParticipants == null ||
+                       request.resource.data.currentParticipants <= resource.data.maxParticipants) &&
+                      exists(/databases/$(database)/documents/registrations/$(request.auth.uid + '_' + eventId));
+
+      allow update: if isSignedIn() &&
+                      changedKeys().hasOnly(['currentParticipants', 'updatedAt']) &&
+                      request.resource.data.currentParticipants == resource.data.currentParticipants - 1 &&
+                      request.resource.data.currentParticipants >= 0 &&
+                      !exists(/databases/$(database)/documents/registrations/$(request.auth.uid + '_' + eventId));
+
       allow delete: if isAdmin();
     }
-    
+
+    // ---------------------------------------------------------------------
     // Inscriptions
+    // L'identifiant du document est impose : "{uid}_{activityId}".
+    // Cela rend l'inscription verifiable par les regles ci-dessus et interdit
+    // structurellement la double inscription.
+    // ---------------------------------------------------------------------
     match /registrations/{registrationId} {
-      allow read: if request.auth != null;
-      
-      // Création avec validation
-      allow create: if request.auth != null && 
+      // Chacun ne voit que ses propres inscriptions ; l'admin voit tout.
+      allow read: if isSignedIn() &&
+                    (isAdmin() || resource.data.userId == request.auth.uid);
+
+      allow create: if isSignedIn() &&
                       request.resource.data.userId == request.auth.uid &&
-                      (request.resource.data.eventId is string || request.resource.data.workshopId is string) &&
-                      !(request.resource.data.eventId is string && request.resource.data.workshopId is string);
-      
-      // Suppression uniquement pour l'utilisateur ou un admin
-      allow delete: if request.auth != null && 
-                      (resource.data.userId == request.auth.uid || isAdmin());
-      
-      // Pas de mise à jour autorisée
+                      request.resource.data.createdAt is timestamp &&
+                      (
+                        (request.resource.data.keys().hasAll(['eventId']) &&
+                         !request.resource.data.keys().hasAny(['workshopId']) &&
+                         registrationId == request.auth.uid + '_' + request.resource.data.eventId)
+                        ||
+                        (request.resource.data.keys().hasAll(['workshopId']) &&
+                         !request.resource.data.keys().hasAny(['eventId']) &&
+                         registrationId == request.auth.uid + '_' + request.resource.data.workshopId)
+                      );
+
       allow update: if false;
-    }
-    
-    // Suggestions
-    match /suggestions/{suggestionId} {
-      // Lecture publique pour tous
-      allow read: if true;
-      
-      // Création pour les utilisateurs authentifiés
-      allow create: if request.auth != null;
-      
-      // Mise à jour (likes, commentaires, statuts)
-      allow update: if request.auth != null;
-      
-      // Suppression uniquement pour l'auteur ou un admin
-      allow delete: if request.auth != null && 
-                      (resource.data.userId == request.auth.uid || isAdmin());
-    }
-    
-    // Galerie de moments participatifs (Instants Anim'Media)
-    match /moments/{momentId} {
-      allow read: if true;
-      allow create: if request.auth != null;
-      allow update: if request.auth != null;
-      allow delete: if request.auth != null && 
+
+      allow delete: if isSignedIn() &&
                       (resource.data.userId == request.auth.uid || isAdmin());
     }
 
-    // Comptes rendus d'AG
+    // ---------------------------------------------------------------------
+    // Suggestions d'activites
+    // ---------------------------------------------------------------------
+    match /suggestions/{suggestionId} {
+      allow read: if true;
+
+      allow create: if isActiveMember() &&
+                      request.resource.data.userId == request.auth.uid &&
+                      isValidString(request.resource.data.title, 3, 200) &&
+                      isValidString(request.resource.data.description, 10, 5000) &&
+                      request.resource.data.likes.size() == 0 &&
+                      !request.resource.data.keys().hasAny(['status', 'adminComment']);
+
+      // L'auteur peut corriger son texte.
+      allow update: if isSignedIn() &&
+                      resource.data.userId == request.auth.uid &&
+                      changedKeys().hasOnly(['title', 'description', 'category', 'updatedAt']) &&
+                      isValidString(request.resource.data.title, 3, 200) &&
+                      isValidString(request.resource.data.description, 10, 5000);
+
+      // Tout utilisateur connecte peut poser ou retirer son seul like.
+      allow update: if isSignedIn() &&
+                      changedKeys().hasOnly(['likes', 'updatedAt']) &&
+                      onlyOwnLikeChanged();
+
+      // Le suivi (statut, commentaire) est reserve aux administrateurs.
+      allow update: if isAdmin() &&
+                      changedKeys().hasOnly(['status', 'adminComment', 'updatedAt']) &&
+                      request.resource.data.status in ['SUBMITTED', 'UNDER_REVIEW', 'APPROVED', 'COMPLETED'];
+
+      allow delete: if isSignedIn() &&
+                      (resource.data.userId == request.auth.uid || isAdmin());
+    }
+
+    // ---------------------------------------------------------------------
+    // Galerie participative (Instants Anim Media)
+    // ---------------------------------------------------------------------
+    match /moments/{momentId} {
+      allow read: if true;
+
+      allow create: if isSignedIn() &&
+                      request.resource.data.userId == request.auth.uid &&
+                      isValidString(request.resource.data.caption, 1, 500) &&
+                      request.resource.data.imageUrl is string &&
+                      request.resource.data.likes.size() == 0 &&
+                      request.resource.data.status == 'APPROVED';
+
+      // L'auteur peut retoucher sa legende.
+      allow update: if isSignedIn() &&
+                      resource.data.userId == request.auth.uid &&
+                      changedKeys().hasOnly(['caption', 'activityTitle']) &&
+                      isValidString(request.resource.data.caption, 1, 500);
+
+      allow update: if isSignedIn() &&
+                      changedKeys().hasOnly(['likes']) &&
+                      onlyOwnLikeChanged();
+
+      // Moderation a posteriori : seul un admin peut masquer une photo.
+      allow update: if isAdmin() &&
+                      changedKeys().hasOnly(['status']) &&
+                      request.resource.data.status in ['APPROVED', 'PENDING'];
+
+      allow delete: if isSignedIn() &&
+                      (resource.data.userId == request.auth.uid || isAdmin());
+    }
+
+    // ---------------------------------------------------------------------
+    // Comptes rendus d'assemblee generale
+    // ---------------------------------------------------------------------
     match /agReports/{reportId} {
-      // Lecture uniquement pour les adhérents actifs
-      allow read: if isActiveMember();
-      
-      // Création avec validation
+      allow read: if isActiveMember() || isAdmin();
+
       allow create: if isAdmin() &&
                       isValidString(request.resource.data.title, 3, 200) &&
                       isValidString(request.resource.data.description, 10, 2000) &&
                       request.resource.data.date is timestamp &&
-                      request.resource.data.pdfUrl is string &&
+                      request.resource.data.storagePath is string &&
                       request.resource.data.fileName is string;
-      
-      // Mise à jour avec validation
+
       allow update: if isAdmin() &&
                       isValidString(request.resource.data.title, 3, 200) &&
                       isValidString(request.resource.data.description, 10, 2000);
-      
-      // Suppression uniquement pour les admins
+
       allow delete: if isAdmin();
+    }
+
+    // Tout le reste est refuse par defaut.
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

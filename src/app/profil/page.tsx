@@ -3,7 +3,7 @@
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEffect, useState } from 'react';
-import { collection, query, where, getDocs, doc, deleteDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, deleteDoc, getDoc, increment, updateDoc, Timestamp } from 'firebase/firestore';
 import { db, auth } from '@/lib/firebase';
 import { deleteUser } from 'firebase/auth';
 import { MembershipStatus, MEMBERSHIP_LABELS } from '@/types';
@@ -49,13 +49,35 @@ function ProfilContent() {
     
     setDeleting(true);
     try {
-      // 1. Supprimer toutes les inscriptions
+      // 1. Supprimer toutes les inscriptions, en libérant la place occupée
+      //    dans chaque activité. Sans ce décompte, les jauges resteraient
+      //    gonflées et des places seraient perdues définitivement.
       const regsQuery = query(
         collection(db, 'registrations'),
         where('userId', '==', user.id)
       );
       const regsSnapshot = await getDocs(regsQuery);
-      await Promise.all(regsSnapshot.docs.map(doc => deleteDoc(doc.ref)));
+
+      for (const registration of regsSnapshot.docs) {
+        const { eventId, workshopId } = registration.data();
+        const activityRef = eventId
+          ? doc(db, 'events', eventId)
+          : workshopId
+            ? doc(db, 'workshops', workshopId)
+            : null;
+
+        await deleteDoc(registration.ref);
+
+        if (activityRef) {
+          const activitySnap = await getDoc(activityRef);
+          if (activitySnap.exists() && (activitySnap.data().currentParticipants || 0) > 0) {
+            await updateDoc(activityRef, {
+              currentParticipants: increment(-1),
+              updatedAt: Timestamp.now(),
+            });
+          }
+        }
+      }
 
       // 2. Supprimer les suggestions de l'utilisateur
       const suggestionsQuery = query(
