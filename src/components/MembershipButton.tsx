@@ -36,7 +36,7 @@ export function MembershipButton() {
         className={`w-full ${THEME_CLASSES.buttonPrimary} font-bold text-base sm:text-lg shadow-xl hover:shadow-2xl relative overflow-hidden group`}
       >
         <motion.div
-          className="absolute inset-0 bg-gradient-to-r from-[#F49928] to-[#DE3156] opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          className="absolute inset-0 bg-gradient-to-r from-brand-orange-dark to-brand-pink opacity-0 group-hover:opacity-100 transition-opacity duration-300"
           animate={{
             backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
           }}

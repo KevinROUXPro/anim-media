@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // L’application est publiée derrière le reverse-proxy sous ce préfixe.
+  basePath: '/anim-media',
+  trailingSlash: true,
   images: {
     formats: ['image/avif', 'image/webp'],
     // Limité aux hôtes réellement utilisés : les images des activités
@@ -28,6 +31,9 @@ const nextConfig: NextConfig = {
   },
   reactStrictMode: true,
   output: 'standalone',
+  outputFileTracingIncludes: {
+    '/identite/logo': ['./public/logo.png'],
+  },
   // Optimisations de performance
   compress: true,
   poweredByHeader: false,

@@ -1,75 +1,44 @@
-// Configuration des couleurs de l'application
-// Basé sur les couleurs du logo Anim'Média
-
+// Palette issue du logo actuel : turquoise, framboise, orange et jaune solaire.
+// Les composants utilisent les mêmes variables que globals.css.
 export const APP_COLORS = {
-  // Couleurs du logo
   logo: {
-    background: '#F7EDE0',
-    primary: '#DE3156',    // Rose/Rouge vif
-    secondary: '#F49928',  // Orange
-    tertiary: '#EEAE84',   // Beige rosé
-    cyan: '#00A8A8',       // Cyan foncé
-    lightCyan: '#00C2CB',  // Cyan clair
-    orange: '#FF7300',     // Orange vif
+    background: '#FFFFFF',
+    primary: '#007F85',
+    secondary: '#E9004F',
+    tertiary: '#A72A86',
+    cyan: '#00A4A8',
+    lightCyan: '#E7F8F7',
+    orange: '#F87500',
+    green: '#46A67B',
+    yellow: '#FFB000',
   },
-  
-  // Couleurs principales pour l'application
-  primary: {
-    main: '#DE3156',       // Rose/Rouge du logo
-    hover: '#b82745',      // Version plus foncée
-    light: '#ff6b8a',      // Version plus claire
-  },
-  
-  secondary: {
-    main: '#00A8A8',       // Cyan du logo
-    hover: '#008989',      // Version plus foncée
-    light: '#00C2CB',      // Cyan clair
-  },
-  
-  accent: {
-    main: '#F49928',       // Orange
-    hover: '#d67d1a',      // Version plus foncée
-    light: '#FF7300',      // Orange vif
-  },
+  primary: { main: '#E9004F', hover: '#C60043', light: '#FFE7EF' },
+  secondary: { main: '#007F85', hover: '#005F65', light: '#E7F8F7' },
+  accent: { main: '#F87500', hover: '#A94700', light: '#FFF0DF' },
 };
 
-// Classes Tailwind personnalisées (à configurer dans tailwind.config.ts)
 export const THEME_CLASSES = {
-  // Headers et sections importantes
-  headerGradient: 'bg-gradient-to-r from-[#DE3156]/90 via-[#F49928]/90 to-[#00A8A8]/90 backdrop-blur-md',
-  heroGradient: 'bg-[#FAF9F6]',
-  
-  // Boutons
-  buttonPrimary: 'bg-[#DE3156] hover:bg-[#c12547] text-white shadow-md shadow-[#DE3156]/10 hover:shadow-lg hover:shadow-[#DE3156]/20 rounded-xl transition-all duration-300 font-semibold',
-  buttonSecondary: 'bg-[#00A8A8] hover:bg-[#008989] text-white shadow-md shadow-[#00A8A8]/10 hover:shadow-lg hover:shadow-[#00A8A8]/20 rounded-xl transition-all duration-300 font-semibold',
-  buttonAccent: 'bg-[#F49928] hover:bg-[#d67d1a] text-white shadow-md shadow-[#F49928]/10 hover:shadow-lg hover:shadow-[#F49928]/20 rounded-xl transition-all duration-300 font-semibold',
-  
-  // Texte et liens
-  textGradient: 'bg-gradient-to-r from-[#DE3156] via-[#F49928] to-[#00A8A8] bg-clip-text text-transparent',
-  textPrimary: 'text-[#DE3156]',
-  textSecondary: 'text-[#00A8A8]',
-  textAccent: 'text-[#F49928]',
-  
-  // Liens
-  linkHover: 'hover:text-[#DE3156]',
-  linkActive: 'text-[#DE3156]',
-  linkSecondary: 'hover:text-[#00A8A8]',
-  
-  // Backgrounds
-  bgLight: 'bg-[#FAF9F6]',
-  bgLightSubtle: 'bg-[#FAF9F6]/50',
-  bgPrimary: 'bg-[#DE3156]',
-  bgSecondary: 'bg-[#00A8A8]',
-  bgAccent: 'bg-[#F49928]',
-  
-  // Cartes et sections
+  headerGradient: 'bg-brand-blue',
+  heroGradient: 'bg-white',
+  buttonPrimary: 'bg-gradient-to-r from-brand-pink to-brand-orange hover:from-brand-pink-dark hover:to-brand-orange-dark text-white shadow-sm rounded-full transition-all duration-200 font-bold',
+  buttonSecondary: 'bg-brand-blue hover:bg-brand-blue-dark text-white shadow-sm rounded-full transition-all duration-200 font-bold',
+  buttonAccent: 'bg-brand-sun hover:bg-brand-orange text-brand-ink shadow-sm rounded-full transition-all duration-200 font-bold',
+  textGradient: 'text-brand-pink',
+  textPrimary: 'text-brand-pink',
+  textSecondary: 'text-brand-blue',
+  textAccent: 'text-brand-orange-dark',
+  linkHover: 'hover:text-brand-pink',
+  linkActive: 'text-brand-pink',
+  linkSecondary: 'hover:text-brand-blue',
+  bgLight: 'bg-brand-surface',
+  bgLightSubtle: 'bg-brand-surface/50',
+  bgPrimary: 'bg-brand-pink',
+  bgSecondary: 'bg-brand-blue',
+  bgAccent: 'bg-brand-orange',
   cardHover: 'card-premium card-premium-hover',
-  sectionEvents: 'bg-gradient-to-br from-[#DE3156]/5 to-[#F49928]/5 border border-red-500/5',
-  sectionWorkshops: 'bg-gradient-to-br from-[#00A8A8]/5 to-[#00C2CB]/5 border border-cyan-500/5',
-  
-  // Borders
-  borderPrimary: 'border-[#DE3156]',
-  borderSecondary: 'border-[#00A8A8]',
-  borderAccent: 'border-[#F49928]',
+  sectionEvents: 'bg-brand-pink/5 border border-brand-pink/10',
+  sectionWorkshops: 'bg-brand-blue/5 border border-brand-blue/10',
+  borderPrimary: 'border-brand-pink',
+  borderSecondary: 'border-brand-blue',
+  borderAccent: 'border-brand-orange',
 };
-

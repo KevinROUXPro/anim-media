@@ -32,7 +32,7 @@ export function ProtectedRoute({
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F7EDE0]/30">
+      <div className="min-h-screen flex items-center justify-center bg-brand-surface/30">
         <div className={`animate-spin rounded-full h-16 w-16 border-4 border-t-transparent ${THEME_CLASSES.borderPrimary}`}></div>
       </div>
     );

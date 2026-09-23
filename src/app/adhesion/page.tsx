@@ -31,7 +31,7 @@ function AdhesionContent() {
   // Si déjà adhérent actif
   if (user?.membershipStatus === MembershipStatus.ACTIVE) {
     return (
-      <div className="min-h-screen bg-[#F7EDE0] py-12">
+      <div className="min-h-screen bg-brand-surface py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             variants={fadeInUp}
@@ -68,7 +68,7 @@ function AdhesionContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F7EDE0] py-12">
+    <div className="min-h-screen bg-brand-surface py-12">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.section
@@ -96,17 +96,17 @@ function AdhesionContent() {
           animate="visible"
           className="mb-12"
         >
-          <Card className="border-4 border-[#DE3156] shadow-2xl overflow-hidden">
-            <CardContent className="p-8 md:p-12 text-center bg-gradient-to-br from-white to-[#F7EDE0]">
+          <Card className="border-4 border-brand-pink shadow-2xl overflow-hidden">
+            <CardContent className="p-8 md:p-12 text-center bg-gradient-to-br from-white to-brand-surface">
               <div className="flex items-center justify-center gap-3 mb-4">
-                <Sparkles className="h-12 w-12 text-[#F49928]" />
-                <h2 className="text-6xl font-bold text-[#DE3156]">15€</h2>
-                <Sparkles className="h-12 w-12 text-[#F49928]" />
+                <Sparkles className="h-12 w-12 text-brand-orange-dark" />
+                <h2 className="text-6xl font-bold text-brand-pink">15€</h2>
+                <Sparkles className="h-12 w-12 text-brand-orange-dark" />
               </div>
               <p className="text-2xl text-gray-700 mb-6">par an seulement</p>
               
-              <div className="bg-white/80 border-2 border-[#F49928] rounded-xl p-6 sm:p-8 text-left">
-                <h3 className="flex items-center justify-center text-xl sm:text-2xl font-bold text-[#DE3156] mb-6">
+              <div className="bg-white/80 border-2 border-brand-orange-dark rounded-xl p-6 sm:p-8 text-left">
+                <h3 className="flex items-center justify-center text-xl sm:text-2xl font-bold text-brand-pink mb-6">
                   <Star className="h-6 w-6 sm:h-7 sm:w-7 mr-2 sm:mr-3" />
                   Comment adhérer ?
                   <Star className="h-6 w-6 sm:h-7 sm:w-7 ml-2 sm:ml-3" />
@@ -114,27 +114,27 @@ function AdhesionContent() {
 
                 <ol className="space-y-4 text-base sm:text-lg text-gray-700">
                   <li className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-8 h-8 rounded-full bg-[#DE3156] text-white font-bold flex items-center justify-center">1</span>
+                    <span className="flex-shrink-0 w-8 h-8 rounded-full bg-brand-pink text-white font-bold flex items-center justify-center">1</span>
                     <span>
                       Votre compte est déjà créé : c&apos;est celui avec lequel vous êtes connecté.
                     </span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-8 h-8 rounded-full bg-[#DE3156] text-white font-bold flex items-center justify-center">2</span>
+                    <span className="flex-shrink-0 w-8 h-8 rounded-full bg-brand-pink text-white font-bold flex items-center justify-center">2</span>
                     <span>
                       Présentez-vous au local de l&apos;association avec votre règlement de{' '}
                       <strong>15 €</strong>, en espèces ou par chèque à l&apos;ordre d&apos;Anim&apos;Média.
                     </span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-8 h-8 rounded-full bg-[#DE3156] text-white font-bold flex items-center justify-center">3</span>
+                    <span className="flex-shrink-0 w-8 h-8 rounded-full bg-brand-pink text-white font-bold flex items-center justify-center">3</span>
                     <span>
                       Un membre du bureau active votre adhésion et vous attribue votre
                       numéro d&apos;adhérent.
                     </span>
                   </li>
                   <li className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-8 h-8 rounded-full bg-[#DE3156] text-white font-bold flex items-center justify-center">4</span>
+                    <span className="flex-shrink-0 w-8 h-8 rounded-full bg-brand-pink text-white font-bold flex items-center justify-center">4</span>
                     <span>
                       Votre carte d&apos;adhérent et vos avantages apparaissent aussitôt dans
                       votre profil.
@@ -167,7 +167,7 @@ function AdhesionContent() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {advantages.map((advantage, index) => (
               <motion.div key={index} variants={staggerItem}>
-                <Card className="h-full border-2 hover:border-[#DE3156] transition-all duration-300 hover:shadow-xl">
+                <Card className="h-full border-2 hover:border-brand-pink transition-all duration-300 hover:shadow-xl">
                   <CardHeader>
                     <div className="text-5xl mb-3">{advantage.icon}</div>
                     <CardTitle className="text-xl">{advantage.title}</CardTitle>

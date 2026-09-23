@@ -174,7 +174,7 @@ export default function VosIdeesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F7EDE0]/30 py-12">
+    <div className="min-h-screen bg-brand-surface/30 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial="hidden"

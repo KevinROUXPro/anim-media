@@ -9,13 +9,14 @@ import { useInView } from 'react-intersection-observer';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { fadeInUp, staggerContainer, staggerItem, bounceIn } from '@/lib/animations';
+import { fadeInUp, staggerContainer } from '@/lib/animations';
 import { cache, CacheKeys } from '@/lib/cache';
 import { EventCardSkeleton } from '@/components/ui/loading-skeleton';
 import { OptimizedImage } from '@/components/OptimizedImage';
 
 export default function EventsPage() {
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
+  const [availableCategories, setAvailableCategories] = useState<ActivityCategory[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<ActivityCategory | 'ALL'>('ALL');
   const [loading, setLoading] = useState(true);
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.05 });
@@ -71,6 +72,7 @@ export default function EventsPage() {
       try {
         const data = await fetchEvents(selectedCategory);
         setFilteredEvents(data);
+        if (selectedCategory === 'ALL') setAvailableCategories([...new Set(data.map(item => item.category))]);
       } catch (error) {
         console.error('Error loading events:', error);
       } finally {
@@ -87,87 +89,23 @@ export default function EventsPage() {
   }, [filteredEvents]);
 
   return (
-    <div className="min-h-screen bg-[#FAF9F6]">
-      {/* Header */}
-      <section className="bg-gradient-to-r from-[#DE3156] via-[#F49928] to-[#00A8A8] text-white py-20 sm:py-24 relative overflow-hidden">
-        {/* Animated background shape */}
-        <motion.div
-          animate={{
-            scale: [1, 1.15, 1],
-            rotate: [0, 180, 360],
-          }}
-          transition={{
-            duration: 25,
-            repeat: Infinity,
-            ease: "linear"
-          }}
-          className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl"
-        />
-        
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-          <motion.div
-            variants={bounceIn}
-            initial="hidden"
-            animate="visible"
-            className="space-y-4"
-          >
-            <motion.h1 
-              className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight"
-            >
-              🎉 Nos Événements
-            </motion.h1>
-            <motion.p 
-              className="text-lg sm:text-xl md:text-2xl opacity-90 max-w-2xl mx-auto font-light"
-              variants={fadeInUp}
-            >
-              Découvrez tous nos événements culturels et festifs à venir
-            </motion.p>
-          </motion.div>
-        </div>
+    <div className="min-h-screen bg-brand-surface">
+      <section className="site-page-heading">
+        <h1>Les événements</h1>
+        <p>Les prochaines occasions de se retrouver.</p>
       </section>
 
-      {/* Filtres */}
-      <section className="bg-white border-b border-gray-100 shadow-sm sticky top-[72px] z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <motion.div 
-            className="flex flex-wrap gap-2.5 items-center justify-center sm:justify-start"
-            variants={staggerContainer}
-            initial="hidden"
-            animate="visible"
-          >
-            <motion.div variants={staggerItem}>
-              <button
-                onClick={() => setSelectedCategory('ALL')}
-                className={`text-sm font-semibold tracking-wide px-5 py-2.5 rounded-full border transition-all duration-300 ${
-                  selectedCategory === 'ALL'
-                    ? 'bg-[#DE3156] text-white border-[#DE3156] shadow-sm'
-                    : 'bg-white text-zinc-700 border-zinc-200/80 hover:bg-zinc-50'
-                }`}
-              >
-                Tous
-              </button>
-            </motion.div>
-            {Object.entries(CATEGORY_LABELS).map(([key, value]) => (
-              <motion.div key={key} variants={staggerItem}>
-                <button
-                  onClick={() => setSelectedCategory(key as ActivityCategory)}
-                  className={`text-sm font-semibold tracking-wide px-5 py-2.5 rounded-full border transition-all duration-300 flex items-center gap-1.5 ${
-                    selectedCategory === key
-                      ? 'bg-[#DE3156] text-white border-[#DE3156] shadow-sm'
-                      : 'bg-white text-zinc-700 border-zinc-200/80 hover:bg-zinc-50'
-                  }`}
-                >
-                  <span>{value.icon}</span>
-                  <span>{value.label}</span>
-                </button>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
+      {availableCategories.length > 1 && (
+        <section className="site-filters" aria-label="Filtrer les activités">
+          <button aria-pressed={selectedCategory === 'ALL'} onClick={() => setSelectedCategory('ALL')}>Toutes les activités</button>
+          {Object.entries(CATEGORY_LABELS).filter(([key]) => availableCategories.includes(key as ActivityCategory)).map(([key, value]) => (
+            <button key={key} aria-pressed={selectedCategory === key} onClick={() => setSelectedCategory(key as ActivityCategory)}>{value.label}</button>
+          ))}
+        </section>
+      )}
 
       {/* Liste des événements */}
-      <section ref={ref} className="py-16 sm:py-20">
+      <section ref={ref} className="py-8 sm:py-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -179,7 +117,7 @@ export default function EventsPage() {
             <motion.div 
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
               variants={staggerContainer}
-              initial="hidden"
+              initial={false}
               animate={inView ? "visible" : "hidden"}
             >
               {memoizedFilteredEvents.map((event, index) => (
@@ -190,7 +128,7 @@ export default function EventsPage() {
             <motion.div 
               className="text-center py-16 bg-white rounded-2xl border border-gray-100 p-8 shadow-sm"
               variants={fadeInUp}
-              initial="hidden"
+              initial={false}
               animate="visible"
             >
               <p className="text-zinc-500 text-lg font-medium">
@@ -206,7 +144,7 @@ export default function EventsPage() {
 
 // Memoization du composant EventCard
 const EventCard = React.memo((props: { event: Event; index: number; inView: boolean }) => {
-  const { event, index } = props;
+  const { event } = props;
   const categoryInfo = CATEGORY_LABELS[event.category];
 
   // Mémoriser le formatage de la date
@@ -221,19 +159,14 @@ const EventCard = React.memo((props: { event: Event; index: number; inView: bool
     >
       <Link href={`/evenements/${event.id}`} className="block h-full">
         <motion.div
-          whileHover={{ 
-            scale: 1.04, 
-            y: -8,
-            rotateZ: index % 2 === 0 ? 1 : -1,
-            boxShadow: "0 25px 50px -12px rgba(222, 49, 86, 0.15)"
-          }}
+          whileHover={{ y: -2 }}
           whileTap={{ scale: 0.98 }}
           transition={{ 
             type: "spring",
             stiffness: 300,
             damping: 18
           }}
-          className="card-premium h-full overflow-hidden flex flex-col p-0 cursor-pointer border-transparent hover:border-[#DE3156]/20 bg-white"
+          className="site-activity-card card-premium h-full overflow-hidden flex flex-col p-0 cursor-pointer border-transparent hover:border-brand-pink/20 bg-white"
         >
           <div className="h-48 w-full relative overflow-hidden border-b border-zinc-100">
             <OptimizedImage
@@ -246,7 +179,7 @@ const EventCard = React.memo((props: { event: Event; index: number; inView: bool
             <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent"></div>
             {/* Badge inscription sur l'image */}
             {event.requiresRegistration && (
-              <div className="absolute top-3 right-3 bg-[#DE3156] text-white backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold shadow-sm">
+              <div className="absolute top-3 right-3 bg-brand-pink text-white backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold shadow-sm">
                 Inscription requise
               </div>
             )}
@@ -263,34 +196,18 @@ const EventCard = React.memo((props: { event: Event; index: number; inView: bool
             </div>
           </div>
           <div className="p-6 flex flex-col flex-grow">
-            <h4 className="text-lg font-bold text-zinc-950 mb-2 line-clamp-1">{event.title}</h4>
+            <h2 className="text-lg font-bold text-zinc-950 mb-2">{event.title}</h2>
             <p className="text-xs font-semibold text-zinc-500 mb-4">
               📅 {formattedDate}
             </p>
             <p className="text-zinc-600 text-sm mb-6 line-clamp-2 flex-grow">{event.description}</p>
             
-            <div className="space-y-3 pt-4 border-t border-zinc-100">
-              <div className="flex items-center justify-between text-xs font-semibold text-zinc-500">
-                <span className="flex items-center gap-1.5">📍 {event.location}</span>
-                
-                {event.requiresRegistration && event.maxParticipants && (
-                  <div className="flex items-center gap-1.5">
-                    <span>Places :</span>
-                    <span className={`${
-                      (event.currentParticipants || 0) >= event.maxParticipants 
-                        ? 'text-red-600 font-bold' 
-                        : (event.currentParticipants || 0) >= event.maxParticipants * 0.8 
-                          ? 'text-orange-600' 
-                          : 'text-green-600'
-                    }`}>
-                      {event.currentParticipants || 0}/{event.maxParticipants}
-                    </span>
-                    {(event.currentParticipants || 0) >= event.maxParticipants && (
-                      <span className="text-red-600 text-[10px] uppercase font-bold tracking-wide border border-red-200 bg-red-50 px-1.5 py-0.5 rounded">Complet</span>
-                    )}
-                  </div>
-                )}
-              </div>
+            <div className="site-activity-details">
+              <p>{event.location || 'Local associatif'}</p>
+              {event.requiresRegistration && event.maxParticipants ? (
+                <p>{(event.currentParticipants || 0) >= event.maxParticipants ? 'Complet' : `Places disponibles : ${Math.max(0, event.maxParticipants - (event.currentParticipants || 0))}`}</p>
+              ) : null}
+              <span className="site-card-action">Voir l’événement <span aria-hidden="true">→</span></span>
             </div>
           </div>
         </motion.div>

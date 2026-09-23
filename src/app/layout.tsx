@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { Navbar } from "@/components/Navbar";
@@ -8,14 +8,32 @@ import { Toaster } from "@/components/ui/sonner";
 import { AutoLogout } from "@/components/AutoLogout";
 import { ScrollToTop } from "@/components/ScrollToTop";
 
-const inter = Inter({
-  subsets: ["latin"],
+const manrope = localFont({
+  src: "./fonts/manrope-latin.woff2",
+  variable: "--font-manrope",
+  weight: "200 800",
+  display: "swap",
+});
+
+const nunito = localFont({
+  src: [
+    { path: "./fonts/nunito-800.ttf", weight: "800" },
+    { path: "./fonts/nunito-900.ttf", weight: "900" },
+  ],
+  variable: "--font-nunito",
   display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Anim'Média La Guerche - Activités Culturelles",
+  title: {
+    default: "Anim'Média La Guerche",
+    template: "%s | Anim'Média",
+  },
   description: "Découvrez nos événements et ateliers culturels : tricot, lecture, écriture, généalogie, informatique et bien plus encore !",
+  icons: {
+    icon: "/anim-media/icon.png",
+    apple: "/anim-media/icon.png",
+  },
 };
 
 export default function RootLayout({
@@ -25,7 +43,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr">
-      <body className={`${inter.className} antialiased`}>
+      <body className={`${manrope.variable} ${nunito.variable} antialiased`}>
         <AuthProvider>
           <ScrollToTop />
           <Navbar />

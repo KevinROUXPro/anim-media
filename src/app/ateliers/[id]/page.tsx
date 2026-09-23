@@ -8,7 +8,7 @@ import { Workshop, CATEGORY_LABELS, LEVEL_LABELS } from '@/types';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { motion } from 'framer-motion';
-import Image from 'next/image';
+import { OptimizedImage } from '@/components/OptimizedImage';
 import { Calendar, Clock, MapPin, Users, ArrowLeft, Award, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -84,7 +84,7 @@ export default function WorkshopDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#F7EDE0]">
+      <div className="min-h-screen flex items-center justify-center bg-brand-surface">
         <motion.div 
           className={`h-16 w-16 border-4 ${THEME_CLASSES.borderSecondary} border-t-transparent rounded-full`}
           animate={{ rotate: 360 }}
@@ -165,7 +165,7 @@ export default function WorkshopDetailPage() {
     : null;
 
   return (
-    <div className="min-h-screen bg-[#F7EDE0] py-12">
+    <div className="min-h-screen bg-brand-surface py-12">
       <div className="max-w-4xl mx-auto px-4">
         <motion.div
           variants={fadeInUp}
@@ -185,7 +185,7 @@ export default function WorkshopDetailPage() {
           <Card className="overflow-hidden border-2 p-0">
             {workshop.imageUrl && (
               <div className="w-full h-64 md:h-96 relative">
-                <Image
+                <OptimizedImage
                   src={workshop.imageUrl}
                   alt={workshop.title}
                   fill
@@ -274,7 +274,7 @@ export default function WorkshopDetailPage() {
                         <Calendar className={`h-5 w-5 ${THEME_CLASSES.textSecondary}`} />
                         <div>
                           <div className="text-sm text-gray-500">Prochaine séance</div>
-                          <div className="font-semibold text-[#00A8A8]">
+                          <div className="font-semibold text-brand-blue">
                             {format(nextSession, 'd MMMM yyyy à HH:mm', { locale: fr })}
                           </div>
                         </div>
@@ -385,7 +385,7 @@ export default function WorkshopDetailPage() {
               )}
 
               {/* Informations sur l'inscription */}
-              <div className="mb-8 bg-gradient-to-r from-[#F7EDE0] to-[#F7EDE0]/50 rounded-2xl p-6 border-2 border-[#00A8A8]/20">
+              <div className="mb-8 bg-gradient-to-r from-brand-surface to-brand-surface/50 rounded-2xl p-6 border-2 border-brand-blue/20">
                 <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
                   {workshop.requiresRegistration ? '📝' : '🔓'} 
                   {workshop.requiresRegistration ? 'Modalités d\'inscription' : 'Accès libre'}
@@ -550,7 +550,7 @@ export default function WorkshopDetailPage() {
                           className={`${
                             isCancelled 
                               ? 'bg-red-50 border-2 border-red-300 opacity-60' 
-                              : 'bg-[#00A8A8]/10 border-2 border-[#00A8A8]/30 hover:bg-[#00A8A8]/20'
+                              : 'bg-brand-blue/10 border-2 border-brand-blue/30 hover:bg-brand-blue/20'
                           } rounded-lg p-3 text-center transition-colors relative`}
                         >
                           {isCancelled && (
@@ -558,7 +558,7 @@ export default function WorkshopDetailPage() {
                               <span className="text-red-600 text-xs font-bold">❌</span>
                             </div>
                           )}
-                          <div className={`font-semibold ${isCancelled ? 'text-red-600 line-through' : 'text-[#00A8A8]'}`}>
+                          <div className={`font-semibold ${isCancelled ? 'text-red-600 line-through' : 'text-brand-blue'}`}>
                             {format(session, 'EEEE d MMMM', { locale: fr })}
                           </div>
                           <div className={`text-sm ${isCancelled ? 'text-red-500 line-through' : 'text-gray-600'}`}>

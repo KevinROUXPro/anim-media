@@ -4,6 +4,22 @@ import Image from 'next/image';
 import { useState } from 'react';
 import { Skeleton } from '@/components/ui/loading-skeleton';
 import { cn } from '@/lib/utils';
+import { ImageIcon } from 'lucide-react';
+
+// Keep the server-side optimiser limited to the hosts in next.config.ts.
+// Other existing HTTPS images load directly, without crashing the whole page.
+function imageSourceMode(src: string): 'optimized' | 'direct' | 'invalid' {
+  if (src.startsWith('/') && !src.startsWith('//')) return 'optimized';
+  try {
+    const url = new URL(src);
+    if (url.protocol !== 'https:') return 'invalid';
+    return !url.port && (url.hostname === 'firebasestorage.googleapis.com'
+      || url.hostname.endsWith('.firebasestorage.app')
+      || url.hostname === 'images.unsplash.com') ? 'optimized' : 'direct';
+  } catch {
+    return 'invalid';
+  }
+}
 
 interface OptimizedImageProps {
   src: string;
@@ -31,16 +47,20 @@ export function OptimizedImage({
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
 
-  if (hasError) {
+  const sourceMode = imageSourceMode(src);
+
+  if (hasError || sourceMode === 'invalid') {
     return (
-      <div 
+      <div
+        role="img"
+        aria-label={alt || 'Illustration indisponible'}
         className={cn(
-          'bg-gray-200 flex items-center justify-center',
+          'bg-[#edf4ec] text-brand-blue flex items-center justify-center',
           className
         )}
         style={fill ? undefined : { width, height }}
       >
-        <span className="text-gray-400 text-sm">Image non disponible</span>
+        <ImageIcon size={48} strokeWidth={1.2} aria-hidden="true" />
       </div>
     );
   }
@@ -77,6 +97,7 @@ export function OptimizedImage({
       )}
       <Image
         src={src}
+        unoptimized={sourceMode === 'direct'}
         alt={alt}
         priority={priority}
         onLoad={() => setIsLoading(false)}

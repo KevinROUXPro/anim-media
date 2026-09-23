@@ -211,7 +211,7 @@ function ProfilContent() {
   });
 
   return (
-    <div className="min-h-screen bg-[#F7EDE0]">
+    <div className="min-h-screen bg-brand-surface">
       {/* Header */}
       <motion.section 
         className={`${THEME_CLASSES.headerGradient} text-white py-16`}
@@ -470,7 +470,7 @@ function ActivityRegistrationCard({ registration, past = false }: { registration
               ease: "easeInOut"
             }}
           >
-            <Card className={`h-full transition-all duration-300 cursor-pointer border-2 border-transparent ${isPastActivity ? 'opacity-60' : 'hover:border-[#DE3156]/50'} bg-white/90 backdrop-blur-sm overflow-hidden relative group p-0`}>
+            <Card className={`h-full transition-all duration-300 cursor-pointer border-2 border-transparent ${isPastActivity ? 'opacity-60' : 'hover:border-brand-pink/50'} bg-white/90 backdrop-blur-sm overflow-hidden relative group p-0`}>
               {/* Effet de brillance au survol */}
               <motion.div
                 className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
